@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Зубарев смотрит — Супер Поиск</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #17212b);
+    --bg2: var(--tg-theme-secondary-bg-color, #0e1621);
+    --text: var(--tg-theme-text-color, #f5f5f5);
+    --hint: var(--tg-theme-hint-color, #708499);
+    --link: var(--tg-theme-link-color, #6ab3f3);
+    --btn: var(--tg-theme-button-color, #5288c1);
+    --btn-text: var(--tg-theme-button-text-color, #ffffff);
+    --card: var(--tg-theme-section-bg-color, #232e3c);
+    --accent: var(--tg-theme-accent-text-color, #6ab2f2);
+    --danger: #e05a52;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg2); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { min-height: 100vh; padding-bottom: 32px; }
+
+  .header { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px; }
+  .logo {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, #e0483f, #b03530);
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .header h1 { font-size: 17px; font-weight: 600; line-height: 1.2; }
+  .header .sub { font-size: 13px; color: var(--hint); margin-top: 2px; }
+  .header .reserve-top {
+    margin-left: auto; flex-shrink: 0;
+    background: var(--card); color: var(--text); border: none;
+    border-radius: 12px; padding: 9px 13px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer;
+  }
+  .header .reserve-top:active { opacity: .75; }
+
+  .searchbar {
+    display: flex; gap: 8px; padding: 6px 16px 12px;
+    position: sticky; top: 0; background: var(--bg2); z-index: 10;
+  }
+  .searchbar .inputwrap { position: relative; flex: 1; }
+  .searchbar input {
+    width: 100%; border: none; outline: none; border-radius: 12px;
+    padding: 12px 36px 12px 14px; font-size: 16px;
+    background: var(--card); color: var(--text);
+  }
+  .searchbar input::placeholder { color: var(--hint); }
+  .clearbtn {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; border: none; border-radius: 50%;
+    background: transparent; color: var(--hint); font-size: 17px; cursor: pointer;
+    display: none;
+  }
+  .searchbar button.go {
+    border: none; border-radius: 12px; padding: 0 20px;
+    background: var(--btn); color: var(--btn-text);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .searchbar button.go:active { opacity: .8; }
+
+  .section-title {
+    font-size: 13px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--hint);
+    padding: 10px 16px 8px;
+  }
+
+  .genres { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px 4px; }
+  .genre {
+    background: var(--card); border: none; border-radius: 12px;
+    padding: 11px 12px; font-size: 14px; color: var(--text);
+    text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  }
+  .genre:active { opacity: .75; }
+  .genre .em { font-size: 16px; }
+
+  .status { text-align: center; font-size: 13px; color: var(--hint); padding: 8px 16px 12px; }
+  .status .pill { display: inline-block; background: var(--card); border-radius: 14px; padding: 7px 14px; }
+
+  .results { padding: 0 12px; display: flex; flex-direction: column; gap: 10px; }
+  .post { background: var(--card); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+  .post:active { opacity: .75; }
+  .post .meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--hint); margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .post .meta .score { color: var(--accent); font-weight: 600; margin-left: auto; }
+  .badge {
+    font-size: 11.5px; font-weight: 700; border-radius: 8px; padding: 3px 8px;
+  }
+  .badge.blocked { background: rgba(224, 90, 82, .16); color: var(--danger); }
+  .badge.low { background: rgba(112, 132, 153, .2); color: var(--hint); }
+  .post .text { font-size: 15px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+  .post .text mark { background: none; color: var(--accent); font-weight: 700; }
+  .post .actions { display: flex; gap: 14px; margin-top: 9px; }
+  .post .actions span { font-size: 13.5px; font-weight: 600; color: var(--link); }
+  .post .actions .to-reserve { color: var(--danger); }
+
+  .empty { text-align: center; color: var(--hint); padding: 36px 24px; font-size: 14.5px; line-height: 1.55; }
+  .empty .reserve-cta {
+    display: inline-block; margin-top: 14px; background: var(--card); color: var(--text);
+    border-radius: 12px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+
+  .back-row {
+    display: flex; align-items: center; gap: 10px; padding: 4px 16px 10px;
+  }
+  .back-btn {
+    border: none; background: var(--card); color: var(--text);
+    border-radius: 12px; padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .back-btn:active { opacity: .75; }
+  .back-row .gtitle { font-size: 16px; font-weight: 700; }
+  .back-row .gcount { font-size: 13px; color: var(--hint); margin-left: auto; }
+
+  .movie {
+    background: var(--card); border-radius: 12px; padding: 11px 14px;
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+  }
+  .movie:active { opacity: .75; }
+  .movie .mtitle { font-size: 14.5px; line-height: 1.35; flex: 1; }
+  .movie .arrow { color: var(--hint); font-size: 15px; }
+  .movie.blocked .arrow { color: var(--danger); }
+  .footer { text-align: center; color: var(--hint); font-size: 12.5px; padding: 26px 16px 8px; line-height: 1.7; }
+  .footer a { color: var(--link); text-decoration: none; }
+  .hidden { display: none !important; }
+  .config-banner {
+    margin: 0 16px 12px; padding: 10px 14px; border-radius: 12px;
+    background: rgba(224, 72, 63, .12); color: #e0847e; font-size: 13px; line-height: 1.45;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🎬</div>
+  <div>
+    <h1>Зубарев смотрит</h1>
+    <div class="sub">Супер Поиск по записям фильмов</div>
+  </div>
+  <button class="reserve-top hidden" id="reserveTop">📦 Резерв</button>
+</div>
+
+<div class="searchbar">
+  <div class="inputwrap">
+    <input id="q" type="search" placeholder="Название фильма, жанр или год" autocomplete="off">
+    <button class="clearbtn" id="clear">✕</button>
+  </div>
+  <button class="go" id="go">Найти</button>
+</div>
+
+<div id="configBanner" class="config-banner hidden"></div>
+
+<!-- Главный экран: жанры + новинки (виден, пока нет запроса) -->
+<div id="home">
+  <div class="section-title">Жанры и подборки</div>
+  <div class="genres" id="genres"></div>
+  <div class="section-title" style="margin-top:6px">Свежие записи</div>
+</div>
+
+<div class="back-row hidden" id="backRow">
+  <button class="back-btn" id="backBtn">← Жанры</button>
+  <span class="gtitle" id="gTitle"></span>
+  <span class="gcount" id="gCount"></span>
+</div>
+
+<div class="status" id="statusWrap"><span class="pill" id="statusText">Загружаю архив канала…</span></div>
+
+<div class="results" id="results"></div>
+<div class="empty hidden" id="empty"></div>
+
+<div class="footer">
+  Поиск понимает опечатки, часть названия и транслит.<br>
+  Сначала до пяти постов, остальные подгрузятся при прокрутке.<br>
+  <a id="helpLink" href="#">⚙️ Видео лагает или не работает — сюда</a><br>
+  @zubareffflook
+</div>
+
+<script>
+(function () {
+  // ================== НАСТРОЙКИ (правьте здесь) ==================
+  var CONFIG = {
+    CHANNEL: "zubareffflook",
+
+    // Резервный канал с фильмами, которые забанил Telegram в основе
+    RESERVE_URL: "https://t.me/rezervzub",
+
+    // Куда вести, если резерв не указан
+    ADMIN_URL: "https://t.me/kr1zzzzz",
+
+    // Страница помощи «если лагает / не работает»
+    HELP_URL: "https://telegra.ph/Esli-u-vas-lagayutzavisayutne-rabotayut-07-02",
+
+    // Посты, заблокированные Telegram по жалобам правообладателей
+    // (id поста: дата блокировки). Определено по уведомлениям поддержки.
+    BLOCKED: {
+      98:   "01.03.2026",  // Гарри Поттер и Дары Смерти: Часть I (2010)
+      502:  "23.02.2026",  // Интерстеллар (2014)
+      673:  "14.07.2026",  // Дэдпул и Росомаха (2024)
+      697:  "11.07.2026",  // В поисках Немо (2003)
+      896:  "13.07.2026",  // ВАЛЛ·И (2008)
+      1016: "13.04.2026",  // Гренландия (2020)
+      1201: "14.07.2026",  // Аватар: Путь воды (2022)
+      1292: "13.07.2026",  // Мстители: Война бесконечности (2018)
+      1398: "13.07.2026",  // Алиса в Зазеркалье (2016)
+      1572: "14.07.2026",  // Хищник: Планета смерти (2025)
+      1621: "14.07.2026"   // Райя и последний дракон (2021)
+    }
+    // Жанры и фильмы в них — в файле genres.json (генерируется build_genres.py)
+  };
+  // ===============================================================
+
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  const PAGE = 5, PAGE_MORE = 15;
+  let POSTS = [], INDEX = [], currentResults = [], shown = 0, mode = "feed";
+
+  function openLink(url) {
+    if (tg && url.startsWith("https://t.me/") && tg.openTelegramLink) tg.openTelegramLink(url);
+    else if (tg && tg.openLink) tg.openLink(url);
+    else window.open(url, "_blank");
+  }
+  function reserveTarget() { return CONFIG.RESERVE_URL || CONFIG.ADMIN_URL; }
+
+  // ---------- нормализация и транслит ----------
+  const RU2EN = { "а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya" };
+  function normalize(s) {
+    return (s || "").toLowerCase().replace(/ё/g, "е")
+      .replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+  }
+  function translit(s) { let o = ""; for (const c of s) o += (RU2EN[c] !== undefined ? RU2EN[c] : c); return o; }
+  function grams(s) {
+    const set = new Set(); const p = " " + s + " ";
+    for (let i = 0; i < p.length - 1; i++) set.add(p.slice(i, i + 2));
+    for (let i = 0; i < p.length - 2; i++) set.add(p.slice(i, i + 3));
+    return set;
+  }
+  const tokGramCache = new Map();
+  function tokGrams(t) {
+    let g = tokGramCache.get(t); if (g) return g;
+    g = new Set(); const p = " " + t + " ";
+    for (let i = 0; i < p.length - 1; i++) g.add(p.slice(i, i + 2));
+    tokGramCache.set(t, g); return g;
+  }
+  function dice(a, b) {
+    const ga = tokGrams(a), gb = tokGrams(b); let h = 0;
+    for (const x of ga) if (gb.has(x)) h++;
+    return 2 * h / (ga.size + gb.size);
+  }
+  const skelCache = new Map();
+  function skel(t) {
+    let s = skelCache.get(t); if (s !== undefined) return s;
+    s = t.replace(/[аеиоуыэюяйьъaeiouy]/g, "").replace(/(.)\1+/g, "$1");
+    skelCache.set(t, s); return s;
+  }
+
+  function buildIndex() {
+    INDEX = POSTS.map(p => {
+      const norm = normalize(p.text);
+      const full = norm + " " + translit(norm);
+      return { post: p, norm: full, tokens: full.split(" ").filter(Boolean), grams: grams(full) };
+    });
+  }
+
+  // ---------- поиск ----------
+  function score(entry, qNorm, qTokens, qGrams) {
+    let s = 0;
+    if (qNorm.length >= 2 && entry.norm.includes(qNorm)) s += 100;
+    for (const qt of qTokens) {
+      if (qt.length < 2) continue;
+      let best = 0;
+      for (const t of entry.tokens) {
+        if (t === qt) { best = Math.max(best, 40); }
+        else if (t.startsWith(qt)) { best = Math.max(best, 25); }
+        else if (qt.length >= 3 && t.includes(qt)) { best = Math.max(best, 15); }
+        else if (qt.length >= 4 && Math.abs(t.length - qt.length) <= 3) {
+          const d = dice(qt, t);
+          if (d >= 0.6) best = Math.max(best, d * 35);
+          else { const sq = skel(qt); if (sq.length >= 3 && sq === skel(t)) best = Math.max(best, 22); }
+        }
+      }
+      s += best;
+    }
+    if (qGrams.size) {
+      let hit = 0;
+      for (const g of qGrams) if (entry.grams.has(g)) hit++;
+      s += (hit / qGrams.size) * 30;
+    }
+    if (entry.tokens.length > 150) s *= 0.5; // посты-каталоги вниз
+    return s;
+  }
+  function search(query) {
+    const qn = normalize(query);
+    if (!qn) return [];
+    const qtr = translit(qn);
+    const qs = qn === qtr ? [qn] : [qn, qtr];
+    const out = [];
+    for (const e of INDEX) {
+      let b = 0;
+      for (const q of qs) {
+        const st = score(e, q, q.split(" ").filter(Boolean), grams(q));
+        if (st > b) b = st;
+      }
+      if (b >= 18) out.push({ entry: e, s: b });
+    }
+    out.sort((a, b) => b.s - a.s || b.entry.post.id - a.entry.post.id);
+    return out;
+  }
+
+  // ---------- рендер ----------
+  const $results = document.getElementById("results");
+  const $empty = document.getElementById("empty");
+  const $statusWrap = document.getElementById("statusWrap");
+  const $status = document.getElementById("statusText");
+  const $q = document.getElementById("q");
+  const $clear = document.getElementById("clear");
+  const $home = document.getElementById("home");
+  const $backRow = document.getElementById("backRow");
+  let GENRES = [];
+
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function highlight(text, query) {
+    let safe = esc(text);
+    if (!query) return safe;
+    for (const w of normalize(query).split(" ").filter(w => w.length >= 2)) {
+      try {
+        const re = new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+        safe = safe.replace(re, "<mark>$1</mark>");
+      } catch (e) {}
+    }
+    return safe;
+  }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
+  }
+  function excerpt(text, query, max) {
+    max = max || 300;
+    if (text.length <= max) return text;
+    const qn = normalize(query || "").split(" ")[0] || "";
+    const idx = qn ? normalize(text).indexOf(qn) : -1;
+    if (idx <= 60) return text.slice(0, max) + "…";
+    const start = Math.max(0, idx - 60);
+    return "…" + text.slice(start, start + max) + "…";
+  }
+
+  function renderPost(p, query, s) {
+    const div = document.createElement("div");
+    div.className = "post";
+    const isBlocked = CONFIG.BLOCKED[p.id];
+    const isLow = /#low\b/i.test(p.text);
+    let meta = '<span>' + fmtDate(p.date) + '</span>';
+    if (isBlocked) meta += '<span class="badge blocked">🚫 Заблокирован ' + isBlocked + '</span>';
+    if (isLow) meta += '<span class="badge low">low-качество</span>';
+    if (s != null) meta += '<span class="score">совпадение ' + Math.min(100, Math.round(s)) + '%</span>';
+    let actions = isBlocked
+      ? '<span class="to-reserve">📦 Смотреть в резерве →</span>'
+      : '<span>Открыть пост →</span>';
+    div.innerHTML =
+      '<div class="meta">' + meta + '</div>' +
+      '<div class="text">' + highlight(excerpt(p.text, query), query) + '</div>' +
+      '<div class="actions">' + actions + '</div>';
+    div.addEventListener("click", () => {
+      openLink(isBlocked ? reserveTarget() : "https://t.me/" + CONFIG.CHANNEL + "/" + p.id);
+    });
+    return div;
+  }
+
+  function renderChunk(query) {
+    const chunk = currentResults.slice(shown, shown + (shown === 0 ? PAGE : PAGE_MORE));
+    for (const r of chunk) $results.appendChild(renderPost(r.entry.post, query, mode === "search" ? r.s : null));
+    shown += chunk.length;
+  }
+
+  function showFeed() {
+    mode = "feed";
+    $home.classList.remove("hidden");
+    $backRow.classList.add("hidden");
+    if (tg && tg.BackButton) tg.BackButton.hide();
+    $results.innerHTML = ""; $empty.classList.add("hidden"); shown = 0;
+    currentResults = INDEX.slice().sort((a, b) => b.post.id - a.post.id).map(e => ({ entry: e, s: 0 }));
+    $statusWrap.classList.remove("hidden");
+    $status.textContent = "В архиве постов: " + POSTS.length + ". Введите запрос или листайте свежее.";
+    renderChunk("");
+  }
+
+  function openMovie(item) {
+    if (item.b) { openLink(reserveTarget()); return; }        // заблокирован -> резерв
+    if (item.id) { openLink("https://t.me/" + CONFIG.CHANNEL + "/" + item.id); return; }
+    $q.value = item.t.replace(/\s*\(\d{4}\)\s*$/, "");        // поста нет -> ищем
+    runSearch();
+    window.scrollTo(0, 0);
+  }
+
+  function showGenre(g) {
+    // подборки без фильмов (IRL, игры, шоу) — открываем пост-каталог
+    if (!g.items.length && g.cat) { openLink("https://t.me/" + CONFIG.CHANNEL + "/" + g.cat); return; }
+    mode = "genre";
+    $home.classList.add("hidden");
+    $statusWrap.classList.add("hidden");
+    $empty.classList.add("hidden");
+    $results.innerHTML = ""; shown = 0; currentResults = [];
+    document.getElementById("gTitle").textContent = g.em + " " + g.name;
+    document.getElementById("gCount").textContent = g.items.length + " шт";
+    $backRow.classList.remove("hidden");
+    if (tg && tg.BackButton) { tg.BackButton.show(); }
+    const frag = document.createDocumentFragment();
+    for (const item of g.items) {
+      const div = document.createElement("div");
+      div.className = "movie" + (item.b ? " blocked" : "");
+      let badge = item.b ? ' <span class="badge blocked">🚫 в резерве</span>'
+                : (!item.id ? ' <span class="badge low">через поиск</span>' : "");
+      div.innerHTML = '<div class="mtitle">' + esc(item.t) + badge + '</div>' +
+                      '<span class="arrow">' + (item.b ? "📦" : "→") + '</span>';
+      div.addEventListener("click", () => openMovie(item));
+      frag.appendChild(div);
+    }
+    $results.appendChild(frag);
+    window.scrollTo(0, 0);
+  }
+
+  function backToHome() { $q.value = ""; showFeed(); }
+  document.getElementById("backBtn").addEventListener("click", backToHome);
+  if (tg && tg.BackButton) tg.BackButton.onClick(backToHome);
+
+  function runSearch() {
+    const query = $q.value.trim();
+    $clear.style.display = query ? "block" : "none";
+    if (!query) { showFeed(); return; }
+    mode = "search";
+    $home.classList.add("hidden");
+    $backRow.classList.add("hidden");
+    if (tg && tg.BackButton) tg.BackButton.hide();
+    $results.innerHTML = ""; $empty.classList.add("hidden"); shown = 0;
+    currentResults = search(query);
+    if (!currentResults.length) {
+      $statusWrap.classList.add("hidden");
+      $empty.innerHTML = "Ничего не нашлось по запросу «" + esc(query) + "».<br>" +
+        "Попробуйте одно слово из названия — так надёжнее всего.<br>" +
+        "Фильм могли удалить по жалобе правообладателя — загляните в резерв." +
+        '<br><span class="reserve-cta" id="emptyReserve">📦 Открыть резерв</span>';
+      $empty.classList.remove("hidden");
+      document.getElementById("emptyReserve").addEventListener("click", () => openLink(reserveTarget()));
+      return;
+    }
+    $statusWrap.classList.remove("hidden");
+    $status.textContent = "Найдено постов: " + currentResults.length;
+    renderChunk(query);
+  }
+
+  window.addEventListener("scroll", () => {
+    if (shown >= currentResults.length) return;
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+      renderChunk(mode === "search" ? $q.value.trim() : "");
+    }
+  });
+
+  document.getElementById("go").addEventListener("click", runSearch);
+  $q.addEventListener("keydown", e => { if (e.key === "Enter") { $q.blur(); runSearch(); } });
+  $q.addEventListener("input", () => { if (!$q.value.trim()) runSearch(); else $clear.style.display = "block"; });
+  $clear.addEventListener("click", () => { $q.value = ""; runSearch(); });
+
+  // ---------- жанры (из genres.json) ----------
+  const $genres = document.getElementById("genres");
+  function buildGenresGrid() {
+    $genres.innerHTML = "";
+    for (const g of GENRES) {
+      const b = document.createElement("button");
+      b.className = "genre";
+      const count = g.items.length ? ' <span style="color:var(--hint)">· ' + g.items.length + '</span>' : "";
+      b.innerHTML = '<span class="em">' + g.em + '</span><span>' + g.name + count + '</span>';
+      b.addEventListener("click", () => showGenre(g));
+      $genres.appendChild(b);
+    }
+  }
+
+  // ---------- резерв и помощь ----------
+  const $reserveTop = document.getElementById("reserveTop");
+  $reserveTop.classList.remove("hidden");
+  $reserveTop.addEventListener("click", () => openLink(reserveTarget()));
+  if (!CONFIG.RESERVE_URL) {
+    const cb = document.getElementById("configBanner");
+    // баннер видит только тот, кто ещё не вписал ссылку на резерв (см. CONFIG)
+    if (location.search.indexOf("admin") !== -1) {
+      cb.textContent = "RESERVE_URL не задан: кнопка «Резерв» пока ведёт к админу. Впишите ссылку в CONFIG вверху index.html.";
+      cb.classList.remove("hidden");
+    }
+  }
+  document.getElementById("helpLink").addEventListener("click", (e) => {
+    e.preventDefault(); openLink(CONFIG.HELP_URL);
+  });
+
+  // ---------- загрузка данных ----------
+  Promise.all([
+    fetch("posts.json", { cache: "no-store" }).then(r => { if (!r.ok) throw 0; return r.json(); }),
+    fetch("genres.json", { cache: "no-store" }).then(r => r.ok ? r.json() : []).catch(() => [])
+  ])
+    .then(([posts, genres]) => { POSTS = posts; GENRES = genres; })
+    .catch(() => {
+      POSTS = [{ id: 1, date: "", text: "Не удалось загрузить posts.json — проверьте, что файл лежит рядом с index.html." }];
+    })
+    .finally(() => { buildIndex(); buildGenresGrid(); showFeed(); });
+})();
+</script>
+</body>
+</html>
