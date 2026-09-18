@@ -3,519 +3,563 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Зубарев смотрит — Супер Поиск</title>
+<title>Зубарев смотрит</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root {
-    --bg: var(--tg-theme-bg-color, #17212b);
-    --bg2: var(--tg-theme-secondary-bg-color, #0e1621);
-    --text: var(--tg-theme-text-color, #f5f5f5);
-    --hint: var(--tg-theme-hint-color, #708499);
-    --link: var(--tg-theme-link-color, #6ab3f3);
-    --btn: var(--tg-theme-button-color, #5288c1);
-    --btn-text: var(--tg-theme-button-text-color, #ffffff);
-    --card: var(--tg-theme-section-bg-color, #232e3c);
-    --accent: var(--tg-theme-accent-text-color, #6ab2f2);
-    --danger: #e05a52;
+    --bg:    var(--tg-theme-bg-color, #17212b);
+    --bg2:   var(--tg-theme-secondary-bg-color, #0e1621);
+    --text:  var(--tg-theme-text-color, #f5f5f5);
+    --hint:  var(--tg-theme-hint-color, #708499);
+    --link:  var(--tg-theme-link-color, #6ab3f3);
+    --btn:   var(--tg-theme-button-color, #5288c1);
+    --btn-t: var(--tg-theme-button-text-color, #ffffff);
+    --card:  var(--tg-theme-section-bg-color, #232e3c);
+    --accent:var(--tg-theme-accent-text-color, #6ab2f2);
+    --red:   #e05a52;
+    --gold:  #f5a623;
+    --green: #4caf7d;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { background: var(--bg2); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  body { min-height: 100vh; padding-bottom: 32px; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg2);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+  body{padding-bottom:80px}
 
-  .header { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px; }
-  .logo {
-    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-    background: linear-gradient(135deg, #e0483f, #b03530);
-    display: flex; align-items: center; justify-content: center; font-size: 22px;
-  }
-  .header h1 { font-size: 17px; font-weight: 600; line-height: 1.2; }
-  .header .sub { font-size: 13px; color: var(--hint); margin-top: 2px; }
-  .header .reserve-top {
-    margin-left: auto; flex-shrink: 0;
-    background: var(--card); color: var(--text); border: none;
-    border-radius: 12px; padding: 9px 13px; font-size: 13.5px; font-weight: 600;
-    cursor: pointer;
-  }
-  .header .reserve-top:active { opacity: .75; }
+  /* ── ШАПКА ── */
+  .header{display:flex;align-items:center;gap:10px;padding:12px 16px 6px}
+  .logo{width:40px;height:40px;border-radius:11px;flex-shrink:0;
+    background:linear-gradient(135deg,#e0483f,#8b1f1b);
+    display:flex;align-items:center;justify-content:center;font-size:20px}
+  .hinfo{flex:1;min-width:0}
+  .hinfo h1{font-size:16px;font-weight:700;line-height:1.2}
+  .hinfo .sub{font-size:12px;color:var(--hint);margin-top:1px}
+  .reserve-top{flex-shrink:0;border:none;background:var(--card);color:var(--text);
+    border-radius:10px;padding:7px 11px;font-size:13px;font-weight:600;cursor:pointer}
+  .reserve-top:active{opacity:.7}
 
-  .searchbar {
-    display: flex; gap: 8px; padding: 6px 16px 12px;
-    position: sticky; top: 0; background: var(--bg2); z-index: 10;
-  }
-  .searchbar .inputwrap { position: relative; flex: 1; }
-  .searchbar input {
-    width: 100%; border: none; outline: none; border-radius: 12px;
-    padding: 12px 36px 12px 14px; font-size: 16px;
-    background: var(--card); color: var(--text);
-  }
-  .searchbar input::placeholder { color: var(--hint); }
-  .clearbtn {
-    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-    width: 28px; height: 28px; border: none; border-radius: 50%;
-    background: transparent; color: var(--hint); font-size: 17px; cursor: pointer;
-    display: none;
-  }
-  .searchbar button.go {
-    border: none; border-radius: 12px; padding: 0 20px;
-    background: var(--btn); color: var(--btn-text);
-    font-size: 15px; font-weight: 600; cursor: pointer;
-  }
-  .searchbar button.go:active { opacity: .8; }
+  /* ── ВКЛАДКИ ── */
+  .tabs{display:flex;gap:0;padding:10px 12px 0;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{border:none;background:transparent;color:var(--hint);
+    font-size:14px;font-weight:600;padding:7px 14px 10px;cursor:pointer;
+    border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab:active{opacity:.7}
 
-  .section-title {
-    font-size: 13px; font-weight: 700; letter-spacing: .06em;
-    text-transform: uppercase; color: var(--hint);
-    padding: 10px 16px 8px;
-  }
+  /* ── ПОИСК ── */
+  .searchbar{display:flex;gap:8px;padding:10px 12px;
+    position:sticky;top:0;background:var(--bg2);z-index:10}
+  .searchbar .wrap{position:relative;flex:1}
+  .searchbar input{width:100%;border:none;outline:none;border-radius:12px;
+    padding:11px 34px 11px 14px;font-size:15px;background:var(--card);color:var(--text)}
+  .searchbar input::placeholder{color:var(--hint)}
+  .clearbtn{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:26px;height:26px;border:none;border-radius:50%;background:transparent;
+    color:var(--hint);font-size:16px;cursor:pointer;display:none}
+  .gobtn{border:none;border-radius:12px;padding:0 18px;background:var(--btn);
+    color:var(--btn-t);font-size:14px;font-weight:700;cursor:pointer}
+  .gobtn:active{opacity:.8}
 
-  .genres { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px 4px; }
-  .genre {
-    background: var(--card); border: none; border-radius: 12px;
-    padding: 11px 12px; font-size: 14px; color: var(--text);
-    text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px;
-  }
-  .genre:active { opacity: .75; }
-  .genre .em { font-size: 16px; }
+  /* ── СЕКЦИИ ── */
+  .sec-title{font-size:12px;font-weight:700;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--hint);padding:8px 14px 6px}
+  .status{text-align:center;font-size:13px;color:var(--hint);padding:6px 14px 10px}
+  .status .pill{display:inline-block;background:var(--card);border-radius:14px;padding:6px 14px}
 
-  .status { text-align: center; font-size: 13px; color: var(--hint); padding: 8px 16px 12px; }
-  .status .pill { display: inline-block; background: var(--card); border-radius: 14px; padding: 7px 14px; }
+  /* ── ЖАНРЫ ── */
+  .genres{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 4px}
+  .genre{background:var(--card);border:none;border-radius:12px;
+    padding:10px 12px;font-size:13.5px;color:var(--text);
+    text-align:left;cursor:pointer;display:flex;align-items:center;gap:8px}
+  .genre:active{opacity:.7}
+  .genre .em{font-size:15px}
+  .genre .cnt{color:var(--hint);font-size:12px;margin-left:auto}
 
-  .results { padding: 0 12px; display: flex; flex-direction: column; gap: 10px; }
-  .post { background: var(--card); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
-  .post:active { opacity: .75; }
-  .post .meta {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12.5px; color: var(--hint); margin-bottom: 6px; flex-wrap: wrap;
-  }
-  .post .meta .score { color: var(--accent); font-weight: 600; margin-left: auto; }
-  .badge {
-    font-size: 11.5px; font-weight: 700; border-radius: 8px; padding: 3px 8px;
-  }
-  .badge.blocked { background: rgba(224, 90, 82, .16); color: var(--danger); }
-  .badge.low { background: rgba(112, 132, 153, .2); color: var(--hint); }
-  .post .text { font-size: 15px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
-  .post .text mark { background: none; color: var(--accent); font-weight: 700; }
-  .post .actions { display: flex; gap: 14px; margin-top: 9px; }
-  .post .actions span { font-size: 13.5px; font-weight: 600; color: var(--link); }
-  .post .actions .to-reserve { color: var(--danger); }
+  /* ── ЖАНР-ЭКРАН ── */
+  .back-row{display:flex;align-items:center;gap:10px;padding:4px 12px 10px}
+  .back-btn{border:none;background:var(--card);color:var(--text);
+    border-radius:10px;padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .back-btn:active{opacity:.7}
+  .gscreen-title{font-size:16px;font-weight:700}
+  .gscreen-count{font-size:13px;color:var(--hint);margin-left:auto}
+  .movie{background:var(--card);border-radius:12px;padding:10px 13px;
+    display:flex;align-items:center;gap:10px;cursor:pointer}
+  .movie:active{opacity:.7}
+  .movie .mtitle{font-size:14px;line-height:1.3;flex:1}
+  .movie .marrow{color:var(--hint);font-size:14px;flex-shrink:0}
+  .movie.blocked .marrow{color:var(--red)}
 
-  .empty { text-align: center; color: var(--hint); padding: 36px 24px; font-size: 14.5px; line-height: 1.55; }
-  .empty .reserve-cta {
-    display: inline-block; margin-top: 14px; background: var(--card); color: var(--text);
-    border-radius: 12px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
-  }
+  /* ── КАРТОЧКИ ПОСТОВ ── */
+  .post{background:var(--card);border-radius:14px;padding:12px 14px;cursor:pointer}
+  .post:active{opacity:.75}
+  .post .meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+    font-size:12px;color:var(--hint);margin-bottom:6px}
+  .post .score-tag{color:var(--accent);font-weight:700;margin-left:auto}
+  .badge{font-size:11px;font-weight:700;border-radius:7px;padding:2px 7px}
+  .badge.blocked{background:rgba(224,90,82,.15);color:var(--red)}
+  .badge.low{background:rgba(112,132,153,.18);color:var(--hint)}
+  .post .body{font-size:14.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+  .post .body mark{background:none;color:var(--accent);font-weight:700}
+  .post .actions{display:flex;gap:14px;margin-top:8px}
+  .post .actions span{font-size:13px;font-weight:600;color:var(--link)}
+  .post .actions .to-reserve{color:var(--red)}
 
-  .back-row {
-    display: flex; align-items: center; gap: 10px; padding: 4px 16px 10px;
+  /* ── ТОП ОЦЕНОК ── */
+  .rating-card{background:var(--card);border-radius:14px;padding:12px 14px;cursor:pointer}
+  .rating-card:active{opacity:.75}
+  .rating-card .rtop{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+  .score-badge{
+    width:46px;height:46px;border-radius:12px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:17px;font-weight:800;
   }
-  .back-btn {
-    border: none; background: var(--card); color: var(--text);
-    border-radius: 12px; padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
-  }
-  .back-btn:active { opacity: .75; }
-  .back-row .gtitle { font-size: 16px; font-weight: 700; }
-  .back-row .gcount { font-size: 13px; color: var(--hint); margin-left: auto; }
+  .score-10{background:rgba(245,166,35,.18);color:var(--gold)}
+  .score-9{background:rgba(76,175,125,.18);color:var(--green)}
+  .score-8{background:rgba(106,179,243,.18);color:var(--accent)}
+  .rating-card .rtitle{font-size:15px;font-weight:600;line-height:1.3}
+  .rating-card .rquote{font-size:13px;color:var(--hint);line-height:1.4;margin-top:2px;
+    font-style:italic}
+  .rating-card .rmeta{font-size:12px;color:var(--hint);margin-top:6px}
 
-  .movie {
-    background: var(--card); border-radius: 12px; padding: 11px 14px;
-    display: flex; align-items: center; gap: 10px; cursor: pointer;
-  }
-  .movie:active { opacity: .75; }
-  .movie .mtitle { font-size: 14.5px; line-height: 1.35; flex: 1; }
-  .movie .arrow { color: var(--hint); font-size: 15px; }
-  .movie.blocked .arrow { color: var(--danger); }
-  .footer { text-align: center; color: var(--hint); font-size: 12.5px; padding: 26px 16px 8px; line-height: 1.7; }
-  .footer a { color: var(--link); text-decoration: none; }
-  .hidden { display: none !important; }
-  .config-banner {
-    margin: 0 16px 12px; padding: 10px 14px; border-radius: 12px;
-    background: rgba(224, 72, 63, .12); color: #e0847e; font-size: 13px; line-height: 1.45;
-  }
+  /* ── ПУСТОЕ СОСТОЯНИЕ ── */
+  .empty{text-align:center;color:var(--hint);padding:36px 24px;font-size:14px;line-height:1.6}
+  .empty .cta{display:inline-block;margin-top:12px;background:var(--card);
+    color:var(--text);border-radius:12px;padding:9px 16px;font-size:13.5px;
+    font-weight:600;cursor:pointer}
+
+  /* ── КОНТЕЙНЕРЫ ── */
+  .list{padding:0 12px;display:flex;flex-direction:column;gap:8px}
+  .screen{display:none}
+  .screen.active{display:block}
+
+  /* ── ПОДВАЛ ── */
+  .footer{text-align:center;color:var(--hint);font-size:12px;
+    padding:22px 16px 6px;line-height:1.7}
+  .footer a{color:var(--link);text-decoration:none}
+  .hidden{display:none!important}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="logo">🎬</div>
-  <div>
+  <div class="hinfo">
     <h1>Зубарев смотрит</h1>
-    <div class="sub">Супер Поиск по записям фильмов</div>
+    <div class="sub">Поиск по записям канала</div>
   </div>
-  <button class="reserve-top hidden" id="reserveTop">📦 Резерв</button>
+  <button class="reserve-top" id="reserveTop">📦 Резерв</button>
 </div>
 
-<div class="searchbar">
-  <div class="inputwrap">
-    <input id="q" type="search" placeholder="Название фильма, жанр или год" autocomplete="off">
-    <button class="clearbtn" id="clear">✕</button>
+<!-- ВКЛАДКИ -->
+<div class="tabs">
+  <button class="tab active" data-tab="search">🔍 Поиск</button>
+  <button class="tab" data-tab="genres">🎭 Жанры</button>
+  <button class="tab" data-tab="top">⭐ Топ Зубарева</button>
+  <button class="tab" data-tab="new">🆕 Новое</button>
+</div>
+
+<!-- ═══ ПОИСК ═══ -->
+<div class="screen active" id="tab-search">
+  <div class="searchbar">
+    <div class="wrap">
+      <input id="q" type="search" placeholder="Название, жанр или год…" autocomplete="off">
+      <button class="clearbtn" id="clear">✕</button>
+    </div>
+    <button class="gobtn" id="go">Найти</button>
   </div>
-  <button class="go" id="go">Найти</button>
+  <div class="status" id="searchStatus"><span class="pill" id="searchText">Загружаю…</span></div>
+  <div class="list" id="searchResults"></div>
+  <div class="empty hidden" id="searchEmpty"></div>
+  <div class="footer">
+    Понимает опечатки, часть слова, транслит и ё/е.<br>
+    <a id="helpLink" href="#">⚙️ Видео не работает — сюда</a>
+  </div>
 </div>
 
-<div id="configBanner" class="config-banner hidden"></div>
-
-<!-- Главный экран: жанры + новинки (виден, пока нет запроса) -->
-<div id="home">
-  <div class="section-title">Жанры и подборки</div>
-  <div class="genres" id="genres"></div>
-  <div class="section-title" style="margin-top:6px">Свежие записи</div>
+<!-- ═══ ЖАНРЫ ═══ -->
+<div class="screen" id="tab-genres">
+  <!-- главный список жанров -->
+  <div id="genreHome">
+    <div class="sec-title">Жанры и подборки</div>
+    <div class="genres" id="genreGrid"></div>
+  </div>
+  <!-- экран конкретного жанра -->
+  <div id="genreDetail" class="hidden">
+    <div class="back-row">
+      <button class="back-btn" id="genreBack">← Назад</button>
+      <span class="gscreen-title" id="genreTitle"></span>
+      <span class="gscreen-count" id="genreCount"></span>
+    </div>
+    <div class="list" id="genreMovies"></div>
+  </div>
 </div>
 
-<div class="back-row hidden" id="backRow">
-  <button class="back-btn" id="backBtn">← Жанры</button>
-  <span class="gtitle" id="gTitle"></span>
-  <span class="gcount" id="gCount"></span>
+<!-- ═══ ТОП ЗУБАРЕВА ═══ -->
+<div class="screen" id="tab-top">
+  <div class="sec-title" id="topTitle">⭐ Лучшее по версии Зубарева</div>
+  <div style="display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap" id="topFilters">
+    <button class="tab active" style="padding:5px 12px;border-radius:20px;border:1px solid var(--accent);font-size:13px" data-score="all">Все</button>
+    <button class="tab" style="padding:5px 12px;border-radius:20px;border:1px solid var(--hint);font-size:13px" data-score="10">🏆 10/10</button>
+    <button class="tab" style="padding:5px 12px;border-radius:20px;border:1px solid var(--hint);font-size:13px" data-score="9">⭐ 9/10</button>
+    <button class="tab" style="padding:5px 12px;border-radius:20px;border:1px solid var(--hint);font-size:13px" data-score="8">👍 8/10</button>
+  </div>
+  <div class="list" id="topList"></div>
 </div>
 
-<div class="status" id="statusWrap"><span class="pill" id="statusText">Загружаю архив канала…</span></div>
-
-<div class="results" id="results"></div>
-<div class="empty hidden" id="empty"></div>
-
-<div class="footer">
-  Поиск понимает опечатки, часть названия и транслит.<br>
-  Сначала до пяти постов, остальные подгрузятся при прокрутке.<br>
-  <a id="helpLink" href="#">⚙️ Видео лагает или не работает — сюда</a><br>
-  @zubareffflook
+<!-- ═══ НОВОЕ ═══ -->
+<div class="screen" id="tab-new">
+  <div class="sec-title">Последние записи канала</div>
+  <div class="status" id="newStatus"><span class="pill">Загружаю…</span></div>
+  <div class="list" id="newList"></div>
 </div>
 
 <script>
-(function () {
-  // ================== НАСТРОЙКИ (правьте здесь) ==================
-  var CONFIG = {
-    CHANNEL: "zubareffflook",
-
-    // Резервный канал с фильмами, которые забанил Telegram в основе
-    RESERVE_URL: "https://t.me/rezervzub",
-
-    // Куда вести, если резерв не указан
-    ADMIN_URL: "https://t.me/kr1zzzzz",
-
-    // Страница помощи «если лагает / не работает»
-    HELP_URL: "https://telegra.ph/Esli-u-vas-lagayutzavisayutne-rabotayut-07-02",
-
-    // Посты, заблокированные Telegram по жалобам правообладателей
-    // (id поста: дата блокировки). Определено по уведомлениям поддержки.
-    BLOCKED: {
-      98:   "01.03.2026",  // Гарри Поттер и Дары Смерти: Часть I (2010) — перезалит #1608
-      139:  "02.08.2026",  // Волк с Уолл-стрит (2013)
-      502:  "23.02.2026",  // Интерстеллар (2014) — перезалит #1581
-      673:  "14.07.2026",  // Дэдпул и Росомаха (2024)
-      676:  "31.07.2026",  // Один дома (1990)
-      697:  "11.07.2026",  // В поисках Немо (2003)
-      752:  "18.07.2026",  // Властелин колец: Две крепости (2002)
-      759:  "28.07.2026",  // Властелин колец: Возвращение короля (2003)
-      806:  "22.07.2026",  // Иллюзия обмана (2013)
-      896:  "13.07.2026",  // ВАЛЛ·И (2008)
-      978:  "19.07.2026",  // Джентльмены (2019)
-      1016: "13.04.2026",  // Гренландия (2020)
-      1036: "04.08.2026",  // Семья по-быстрому (2018)
-      1143: "30.07.2026",  // Храбрая сердцем (2012)
-      1201: "14.07.2026",  // Аватар: Путь воды (2022)
-      1292: "13.07.2026",  // Мстители: Война бесконечности (2018) — перезалит #192
-      1398: "13.07.2026",  // Алиса в Зазеркалье (2016)
-      1556: "25.07.2026",  // Годзилла 2: Король монстров (2019)
-      1572: "14.07.2026",  // Хищник: Планета смерти (2025)
-      1621: "14.07.2026"   // Райя и последний дракон (2021)
-    }
-    // Жанры и фильмы в них — в файле genres.json (генерируется build_genres.py)
-  };
-  // ===============================================================
-
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg) { tg.ready(); tg.expand(); }
-
-  const PAGE = 5, PAGE_MORE = 15;
-  let POSTS = [], INDEX = [], currentResults = [], shown = 0, mode = "feed";
-
-  function openLink(url) {
-    if (tg && url.startsWith("https://t.me/") && tg.openTelegramLink) tg.openTelegramLink(url);
-    else if (tg && tg.openLink) tg.openLink(url);
-    else window.open(url, "_blank");
+(function(){
+const CONFIG = {
+  CHANNEL: 'zubareffflook',
+  RESERVE_CHANNEL: 'rezervzub',
+  HELP_URL: 'https://telegra.ph/Esli-u-vas-lagayutzavisayutne-rabotayut-07-02',
+  BLOCKED: {
+    98:  {url:'https://t.me/rezervzub',       date:'01.03.2026', title:'Гарри Поттер и Дары Смерти: Часть I'},
+    139: {url:'https://t.me/rezervzub/33',    date:'02.08.2026', title:'Волк с Уолл-стрит'},
+    502: {url:'https://t.me/rezervzub',       date:'23.02.2026', title:'Интерстеллар'},
+    673: {url:'https://t.me/rezervzub/21',    date:'14.07.2026', title:'Дэдпул и Росомаха'},
+    676: {url:'https://t.me/rezervzub/50',    date:'31.07.2026', title:'Один дома'},
+    697: {url:'https://t.me/rezervzub/4',     date:'11.07.2026', title:'В поисках Немо'},
+    752: {url:'https://t.me/rezervzub/17',    date:'18.07.2026', title:'Властелин колец: Две крепости'},
+    759: {url:'https://t.me/rezervzub/46',    date:'28.07.2026', title:'Властелин колец: Возвращение короля'},
+    806: {url:'https://t.me/rezervzub/37',    date:'22.07.2026', title:'Иллюзия обмана'},
+    896: {url:'https://t.me/rezervzub/2',     date:'13.07.2026', title:'ВАЛЛ·И'},
+    978: {url:'https://t.me/rezervzub/14',    date:'19.07.2026', title:'Джентльмены'},
+   1016: {url:'https://t.me/rezervzub/30',    date:'13.04.2026', title:'Гренландия'},
+   1036: {url:'https://t.me/rezervzub/53',    date:'04.08.2026', title:'Семья по-быстрому'},
+   1143: {url:'https://t.me/rezervzub/43',    date:'30.07.2026', title:'Храбрая сердцем'},
+   1201: {url:'https://t.me/rezervzub/7',     date:'14.07.2026', title:'Аватар: Путь воды'},
+   1292: {url:'https://t.me/rezervzub',       date:'13.07.2026', title:'Мстители: Война бесконечности'},
+   1398: {url:'https://t.me/rezervzub/12',    date:'13.07.2026', title:'Алиса в Зазеркалье'},
+   1556: {url:'https://t.me/rezervzub/40',    date:'25.07.2026', title:'Годзилла 2: Король монстров'},
+   1572: {url:'https://t.me/rezervzub/27',    date:'14.07.2026', title:'Хищник: Планета смерти'},
+   1621: {url:'https://t.me/rezervzub/24',    date:'14.07.2026', title:'Райя и последний дракон'},
   }
-  function reserveTarget() { return CONFIG.RESERVE_URL || CONFIG.ADMIN_URL; }
+};
 
-  // ---------- нормализация и транслит ----------
-  const RU2EN = { "а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya" };
-  function normalize(s) {
-    return (s || "").toLowerCase().replace(/ё/g, "е")
-      .replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
-  }
-  function translit(s) { let o = ""; for (const c of s) o += (RU2EN[c] !== undefined ? RU2EN[c] : c); return o; }
-  function grams(s) {
-    const set = new Set(); const p = " " + s + " ";
-    for (let i = 0; i < p.length - 1; i++) set.add(p.slice(i, i + 2));
-    for (let i = 0; i < p.length - 2; i++) set.add(p.slice(i, i + 3));
-    return set;
-  }
-  const tokGramCache = new Map();
-  function tokGrams(t) {
-    let g = tokGramCache.get(t); if (g) return g;
-    g = new Set(); const p = " " + t + " ";
-    for (let i = 0; i < p.length - 1; i++) g.add(p.slice(i, i + 2));
-    tokGramCache.set(t, g); return g;
-  }
-  function dice(a, b) {
-    const ga = tokGrams(a), gb = tokGrams(b); let h = 0;
-    for (const x of ga) if (gb.has(x)) h++;
-    return 2 * h / (ga.size + gb.size);
-  }
-  const skelCache = new Map();
-  function skel(t) {
-    let s = skelCache.get(t); if (s !== undefined) return s;
-    s = t.replace(/[аеиоуыэюяйьъaeiouy]/g, "").replace(/(.)\1+/g, "$1");
-    skelCache.set(t, s); return s;
-  }
+const tg = window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
 
-  function buildIndex() {
-    INDEX = POSTS.map(p => {
-      const norm = normalize(p.text);
-      const full = norm + " " + translit(norm);
-      return { post: p, norm: full, tokens: full.split(" ").filter(Boolean), grams: grams(full) };
-    });
-  }
+function openLink(url){
+  if(!url) return;
+  if(tg && url.startsWith('https://t.me/') && tg.openTelegramLink) tg.openTelegramLink(url);
+  else if(tg && tg.openLink) tg.openLink(url);
+  else window.open(url,'_blank');
+}
 
-  // ---------- поиск ----------
-  function score(entry, qNorm, qTokens, qGrams) {
-    let s = 0;
-    if (qNorm.length >= 2 && entry.norm.includes(qNorm)) s += 100;
-    for (const qt of qTokens) {
-      if (qt.length < 2) continue;
-      let best = 0;
-      for (const t of entry.tokens) {
-        if (t === qt) { best = Math.max(best, 40); }
-        else if (t.startsWith(qt)) { best = Math.max(best, 25); }
-        else if (qt.length >= 3 && t.includes(qt)) { best = Math.max(best, 15); }
-        else if (qt.length >= 4 && Math.abs(t.length - qt.length) <= 3) {
-          const d = dice(qt, t);
-          if (d >= 0.6) best = Math.max(best, d * 35);
-          else { const sq = skel(qt); if (sq.length >= 3 && sq === skel(t)) best = Math.max(best, 22); }
-        }
-      }
-      s += best;
-    }
-    if (qGrams.size) {
-      let hit = 0;
-      for (const g of qGrams) if (entry.grams.has(g)) hit++;
-      s += (hit / qGrams.size) * 30;
-    }
-    if (entry.tokens.length > 150) s *= 0.5; // посты-каталоги вниз
-    return s;
-  }
-  function search(query) {
-    const qn = normalize(query);
-    if (!qn) return [];
-    const qtr = translit(qn);
-    const qs = qn === qtr ? [qn] : [qn, qtr];
-    const out = [];
-    for (const e of INDEX) {
-      let b = 0;
-      for (const q of qs) {
-        const st = score(e, q, q.split(" ").filter(Boolean), grams(q));
-        if (st > b) b = st;
-      }
-      if (b >= 18) out.push({ entry: e, s: b });
-    }
-    out.sort((a, b) => b.s - a.s || b.entry.post.id - a.entry.post.id);
-    return out;
-  }
+// ════ ДАННЫЕ ════
+let POSTS=[], GENRES=[], RATINGS=[], INDEX=[];
+const PAGE=5, PAGE_MORE=15;
+let searchResults=[], searchShown=0, newShown=0, curTopFilter='all';
 
-  // ---------- рендер ----------
-  const $results = document.getElementById("results");
-  const $empty = document.getElementById("empty");
-  const $statusWrap = document.getElementById("statusWrap");
-  const $status = document.getElementById("statusText");
-  const $q = document.getElementById("q");
-  const $clear = document.getElementById("clear");
-  const $home = document.getElementById("home");
-  const $backRow = document.getElementById("backRow");
-  let GENRES = [];
+// ════ ПОИСКОВЫЙ ДВИЖОК ════
+const RU2EN={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya"};
+const normalize=s=>(s||'').toLowerCase().replace(/ё/g,'е').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
+const translit=s=>{let o='';for(const c of s)o+=(RU2EN[c]!==undefined?RU2EN[c]:c);return o;};
+function grams(s){const set=new Set(),p=' '+s+' ';for(let i=0;i<p.length-1;i++)set.add(p.slice(i,i+2));for(let i=0;i<p.length-2;i++)set.add(p.slice(i,i+3));return set;}
+const tgc=new Map();
+function tokGrams(t){let g=tgc.get(t);if(g)return g;g=new Set();const p=' '+t+' ';for(let i=0;i<p.length-1;i++)g.add(p.slice(i,i+2));tgc.set(t,g);return g;}
+function dice(a,b){const ga=tokGrams(a),gb=tokGrams(b);let h=0;for(const x of ga)if(gb.has(x))h++;return 2*h/(ga.size+gb.size);}
+const sc=new Map();
+function skel(t){let s=sc.get(t);if(s!==undefined)return s;s=t.replace(/[аеиоуыэюяйьъaeiouy]/g,'').replace(/(.)\1+/g,'$1');sc.set(t,s);return s;}
 
-  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  function highlight(text, query) {
-    let safe = esc(text);
-    if (!query) return safe;
-    for (const w of normalize(query).split(" ").filter(w => w.length >= 2)) {
-      try {
-        const re = new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
-        safe = safe.replace(re, "<mark>$1</mark>");
-      } catch (e) {}
-    }
-    return safe;
-  }
-  function fmtDate(iso) {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (isNaN(d)) return iso;
-    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
-  }
-  function excerpt(text, query, max) {
-    max = max || 300;
-    if (text.length <= max) return text;
-    const qn = normalize(query || "").split(" ")[0] || "";
-    const idx = qn ? normalize(text).indexOf(qn) : -1;
-    if (idx <= 60) return text.slice(0, max) + "…";
-    const start = Math.max(0, idx - 60);
-    return "…" + text.slice(start, start + max) + "…";
-  }
-
-  function renderPost(p, query, s) {
-    const div = document.createElement("div");
-    div.className = "post";
-    const isBlocked = CONFIG.BLOCKED[p.id];
-    const isLow = /#low\b/i.test(p.text);
-    let meta = '<span>' + fmtDate(p.date) + '</span>';
-    if (isBlocked) meta += '<span class="badge blocked">🚫 Заблокирован ' + isBlocked + '</span>';
-    if (isLow) meta += '<span class="badge low">low-качество</span>';
-    if (s != null) meta += '<span class="score">совпадение ' + Math.min(100, Math.round(s)) + '%</span>';
-    let actions = isBlocked
-      ? '<span class="to-reserve">📦 Смотреть в резерве →</span>'
-      : '<span>Открыть пост →</span>';
-    div.innerHTML =
-      '<div class="meta">' + meta + '</div>' +
-      '<div class="text">' + highlight(excerpt(p.text, query), query) + '</div>' +
-      '<div class="actions">' + actions + '</div>';
-    div.addEventListener("click", () => {
-      openLink(isBlocked ? reserveTarget() : "https://t.me/" + CONFIG.CHANNEL + "/" + p.id);
-    });
-    return div;
-  }
-
-  function renderChunk(query) {
-    const chunk = currentResults.slice(shown, shown + (shown === 0 ? PAGE : PAGE_MORE));
-    for (const r of chunk) $results.appendChild(renderPost(r.entry.post, query, mode === "search" ? r.s : null));
-    shown += chunk.length;
-  }
-
-  function showFeed() {
-    mode = "feed";
-    $home.classList.remove("hidden");
-    $backRow.classList.add("hidden");
-    if (tg && tg.BackButton) tg.BackButton.hide();
-    $results.innerHTML = ""; $empty.classList.add("hidden"); shown = 0;
-    currentResults = INDEX.slice().sort((a, b) => b.post.id - a.post.id).map(e => ({ entry: e, s: 0 }));
-    $statusWrap.classList.remove("hidden");
-    $status.textContent = "В архиве постов: " + POSTS.length + ". Введите запрос или листайте свежее.";
-    renderChunk("");
-  }
-
-  function openMovie(item) {
-    if (item.b) { openLink(reserveTarget()); return; }        // заблокирован -> резерв
-    if (item.id) { openLink("https://t.me/" + CONFIG.CHANNEL + "/" + item.id); return; }
-    $q.value = item.t.replace(/\s*\(\d{4}\)\s*$/, "");        // поста нет -> ищем
-    runSearch();
-    window.scrollTo(0, 0);
-  }
-
-  function showGenre(g) {
-    // подборки без фильмов (IRL, игры, шоу) — открываем пост-каталог
-    if (!g.items.length && g.cat) { openLink("https://t.me/" + CONFIG.CHANNEL + "/" + g.cat); return; }
-    mode = "genre";
-    $home.classList.add("hidden");
-    $statusWrap.classList.add("hidden");
-    $empty.classList.add("hidden");
-    $results.innerHTML = ""; shown = 0; currentResults = [];
-    document.getElementById("gTitle").textContent = g.em + " " + g.name;
-    document.getElementById("gCount").textContent = g.items.length + " шт";
-    $backRow.classList.remove("hidden");
-    if (tg && tg.BackButton) { tg.BackButton.show(); }
-    const frag = document.createDocumentFragment();
-    for (const item of g.items) {
-      const div = document.createElement("div");
-      div.className = "movie" + (item.b ? " blocked" : "");
-      let badge = item.b ? ' <span class="badge blocked">🚫 в резерве</span>'
-                : (!item.id ? ' <span class="badge low">через поиск</span>' : "");
-      div.innerHTML = '<div class="mtitle">' + esc(item.t) + badge + '</div>' +
-                      '<span class="arrow">' + (item.b ? "📦" : "→") + '</span>';
-      div.addEventListener("click", () => openMovie(item));
-      frag.appendChild(div);
-    }
-    $results.appendChild(frag);
-    window.scrollTo(0, 0);
-  }
-
-  function backToHome() { $q.value = ""; showFeed(); }
-  document.getElementById("backBtn").addEventListener("click", backToHome);
-  if (tg && tg.BackButton) tg.BackButton.onClick(backToHome);
-
-  function runSearch() {
-    const query = $q.value.trim();
-    $clear.style.display = query ? "block" : "none";
-    if (!query) { showFeed(); return; }
-    mode = "search";
-    $home.classList.add("hidden");
-    $backRow.classList.add("hidden");
-    if (tg && tg.BackButton) tg.BackButton.hide();
-    $results.innerHTML = ""; $empty.classList.add("hidden"); shown = 0;
-    currentResults = search(query);
-    if (!currentResults.length) {
-      $statusWrap.classList.add("hidden");
-      $empty.innerHTML = "Ничего не нашлось по запросу «" + esc(query) + "».<br>" +
-        "Попробуйте одно слово из названия — так надёжнее всего.<br>" +
-        "Фильм могли удалить по жалобе правообладателя — загляните в резерв." +
-        '<br><span class="reserve-cta" id="emptyReserve">📦 Открыть резерв</span>';
-      $empty.classList.remove("hidden");
-      document.getElementById("emptyReserve").addEventListener("click", () => openLink(reserveTarget()));
-      return;
-    }
-    $statusWrap.classList.remove("hidden");
-    $status.textContent = "Найдено постов: " + currentResults.length;
-    renderChunk(query);
-  }
-
-  window.addEventListener("scroll", () => {
-    if (shown >= currentResults.length) return;
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
-      renderChunk(mode === "search" ? $q.value.trim() : "");
-    }
+function buildIndex(){
+  INDEX=POSTS.map(p=>{
+    const n=normalize(p.text),f=n+' '+translit(n);
+    return{post:p,norm:f,tokens:f.split(' ').filter(Boolean),grams:grams(f)};
   });
+}
 
-  document.getElementById("go").addEventListener("click", runSearch);
-  $q.addEventListener("keydown", e => { if (e.key === "Enter") { $q.blur(); runSearch(); } });
-  $q.addEventListener("input", () => { if (!$q.value.trim()) runSearch(); else $clear.style.display = "block"; });
-  $clear.addEventListener("click", () => { $q.value = ""; runSearch(); });
-
-  // ---------- жанры (из genres.json) ----------
-  const $genres = document.getElementById("genres");
-  function buildGenresGrid() {
-    $genres.innerHTML = "";
-    for (const g of GENRES) {
-      const b = document.createElement("button");
-      b.className = "genre";
-      const count = g.items.length ? ' <span style="color:var(--hint)">· ' + g.items.length + '</span>' : "";
-      b.innerHTML = '<span class="em">' + g.em + '</span><span>' + g.name + count + '</span>';
-      b.addEventListener("click", () => showGenre(g));
-      $genres.appendChild(b);
+function scoreEntry(e,qN,qT,qG){
+  let s=0;
+  if(qN.length>=2 && e.norm.includes(qN)) s+=100;
+  for(const qt of qT){
+    if(qt.length<2) continue;
+    let b=0;
+    for(const t of e.tokens){
+      if(t===qt) b=Math.max(b,40);
+      else if(t.startsWith(qt)) b=Math.max(b,25);
+      else if(qt.length>=3&&t.includes(qt)) b=Math.max(b,15);
+      else if(qt.length>=4&&Math.abs(t.length-qt.length)<=3){
+        const d=dice(qt,t);
+        if(d>=0.6) b=Math.max(b,d*35);
+        else{const sq=skel(qt);if(sq.length>=3&&sq===skel(t))b=Math.max(b,22);}
+      }
     }
+    s+=b;
   }
+  if(qG.size){let h=0;for(const g of qG)if(e.grams.has(g))h++;s+=(h/qG.size)*30;}
+  if(e.tokens.length>150) s*=0.5;
+  return s;
+}
 
-  // ---------- резерв и помощь ----------
-  const $reserveTop = document.getElementById("reserveTop");
-  $reserveTop.classList.remove("hidden");
-  $reserveTop.addEventListener("click", () => openLink(reserveTarget()));
-  if (!CONFIG.RESERVE_URL) {
-    const cb = document.getElementById("configBanner");
-    // баннер видит только тот, кто ещё не вписал ссылку на резерв (см. CONFIG)
-    if (location.search.indexOf("admin") !== -1) {
-      cb.textContent = "RESERVE_URL не задан: кнопка «Резерв» пока ведёт к админу. Впишите ссылку в CONFIG вверху index.html.";
-      cb.classList.remove("hidden");
-    }
+function search(query){
+  const qn=normalize(query);
+  if(!qn) return [];
+  const qtr=translit(qn),qs=qn===qtr?[qn]:[qn,qtr];
+  const out=[];
+  for(const e of INDEX){
+    let b=0;
+    for(const q of qs){const st=scoreEntry(e,q,q.split(' ').filter(Boolean),grams(q));if(st>b)b=st;}
+    if(b>=18) out.push({entry:e,s:b});
   }
-  document.getElementById("helpLink").addEventListener("click", (e) => {
-    e.preventDefault(); openLink(CONFIG.HELP_URL);
+  return out.sort((a,b)=>b.s-a.s||b.entry.post.id-a.entry.post.id);
+}
+
+// ════ УТИЛИТЫ РЕНДЕРА ════
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function highlight(text,q){
+  let safe=esc(text);
+  for(const w of normalize(q||'').split(' ').filter(w=>w.length>=2)){
+    try{safe=safe.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');}catch(e){}
+  }
+  return safe;
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const d=new Date(iso);
+  return isNaN(d)?iso:d.toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'});
+}
+function excerpt(text,q,max=300){
+  if(text.length<=max) return text;
+  const idx=normalize(text).indexOf(normalize(q||'').split(' ')[0]||'');
+  if(idx<=60) return text.slice(0,max)+'…';
+  return '…'+text.slice(Math.max(0,idx-60),idx-60+max)+'…';
+}
+
+// ════ КАРТОЧКА ПОСТА ════
+function makePostCard(p,query,showScore,score){
+  const isB=CONFIG.BLOCKED[p.id];
+  const isLow=/#low\b/i.test(p.text);
+  const div=document.createElement('div');
+  div.className='post';
+  let meta=`<span>${fmtDate(p.date)}</span>`;
+  if(isB) meta+=`<span class="badge blocked">🚫 ${isB.date}</span>`;
+  if(isLow) meta+=`<span class="badge low">low</span>`;
+  if(showScore&&score!=null) meta+=`<span class="score-tag">${Math.min(100,Math.round(score))}%</span>`;
+  let action=isB
+    ?`<span class="to-reserve">📦 Открыть в резерве →</span>`
+    :`<span>Открыть запись →</span>`;
+  div.innerHTML=`<div class="meta">${meta}</div>`+
+    `<div class="body">${highlight(excerpt(p.text,query),query)}</div>`+
+    `<div class="actions">${action}</div>`;
+  div.addEventListener('click',()=>{
+    openLink(isB ? isB.url : `https://t.me/${CONFIG.CHANNEL}/${p.id}`);
   });
+  return div;
+}
 
-  // ---------- загрузка данных ----------
-  Promise.all([
-    fetch("posts.json", { cache: "no-store" }).then(r => { if (!r.ok) throw 0; return r.json(); }),
-    fetch("genres.json", { cache: "no-store" }).then(r => r.ok ? r.json() : []).catch(() => [])
-  ])
-    .then(([posts, genres]) => { POSTS = posts; GENRES = genres; })
-    .catch(() => {
-      POSTS = [{ id: 1, date: "", text: "Не удалось загрузить posts.json — проверьте, что файл лежит рядом с index.html." }];
-    })
-    .finally(() => { buildIndex(); buildGenresGrid(); showFeed(); });
+// ════ ВКЛАДКА: ПОИСК ════
+const $sResults=document.getElementById('searchResults');
+const $sStatus=document.getElementById('searchStatus');
+const $sText=document.getElementById('searchText');
+const $sEmpty=document.getElementById('searchEmpty');
+const $q=document.getElementById('q');
+const $clear=document.getElementById('clear');
+
+function renderSearchChunk(){
+  const chunk=searchResults.slice(searchShown,searchShown+(searchShown===0?PAGE:PAGE_MORE));
+  const frag=document.createDocumentFragment();
+  for(const r of chunk) frag.appendChild(makePostCard(r.entry.post,$q.value.trim(),true,r.s));
+  $sResults.appendChild(frag);
+  searchShown+=chunk.length;
+}
+
+function runSearch(){
+  const q=$q.value.trim();
+  $clear.style.display=q?'block':'none';
+  $sResults.innerHTML='';$sEmpty.classList.add('hidden');searchShown=0;
+  if(!q){
+    $sStatus.classList.remove('hidden');
+    $sText.textContent=`В архиве: ${POSTS.length} записей. Введите запрос.`;
+    return;
+  }
+  searchResults=search(q);
+  if(!searchResults.length){
+    $sStatus.classList.add('hidden');
+    $sEmpty.innerHTML=`По запросу «${esc(q)}» ничего не найдено.<br>Попробуйте одно слово из названия.<br>Фильм мог попасть под блокировку.`+
+      `<br><span class="cta" id="emptyRes">📦 Открыть Резерв</span>`;
+    $sEmpty.classList.remove('hidden');
+    document.getElementById('emptyRes')?.addEventListener('click',()=>openLink('https://t.me/'+CONFIG.RESERVE_CHANNEL));
+    return;
+  }
+  $sStatus.classList.remove('hidden');
+  $sText.textContent=`Найдено: ${searchResults.length}`;
+  renderSearchChunk();
+}
+
+document.getElementById('go').addEventListener('click',runSearch);
+$q.addEventListener('keydown',e=>{if(e.key==='Enter'){$q.blur();runSearch();}});
+$q.addEventListener('input',()=>{$clear.style.display=$q.value?'block':'none';if(!$q.value.trim())runSearch();});
+$clear.addEventListener('click',()=>{$q.value='';runSearch();});
+
+// ════ ВКЛАДКА: ЖАНРЫ ════
+const $genreGrid=document.getElementById('genreGrid');
+const $genreHome=document.getElementById('genreHome');
+const $genreDetail=document.getElementById('genreDetail');
+const $genreMovies=document.getElementById('genreMovies');
+
+function buildGenreGrid(){
+  $genreGrid.innerHTML='';
+  for(const g of GENRES){
+    const b=document.createElement('button');
+    b.className='genre';
+    b.innerHTML=`<span class="em">${g.em}</span><span>${g.name}</span>`+
+      (g.items.length?`<span class="cnt">${g.items.length}</span>`:'');
+    b.addEventListener('click',()=>showGenre(g));
+    $genreGrid.appendChild(b);
+  }
+}
+
+function showGenre(g){
+  if(!g.items.length&&g.cat){openLink(`https://t.me/${CONFIG.CHANNEL}/${g.cat}`);return;}
+  $genreHome.classList.add('hidden');
+  $genreDetail.classList.remove('hidden');
+  document.getElementById('genreTitle').textContent=g.em+' '+g.name;
+  document.getElementById('genreCount').textContent=g.items.length+' шт';
+  $genreMovies.innerHTML='';
+  const frag=document.createDocumentFragment();
+  for(const item of g.items){
+    const isB=item.b;
+    const div=document.createElement('div');
+    div.className='movie'+(isB?' blocked':'');
+    let badge=isB?`<span class="badge blocked" style="margin-left:6px">🚫</span>`:
+      (!item.id?`<span class="badge low" style="margin-left:6px">поиск</span>`:'');
+    div.innerHTML=`<div class="mtitle">${esc(item.t)}${badge}</div>`+
+      `<span class="marrow">${isB?'📦':'→'}</span>`;
+    div.addEventListener('click',()=>{
+      if(isB){
+        // ищем прямую ссылку в BLOCKED по title
+        const bEntry=Object.values(CONFIG.BLOCKED).find(b=>item.t.includes(b.title)||b.title.includes(item.t.replace(/\s*\(\d{4}\)/,'')));
+        openLink(bEntry?bEntry.url:'https://t.me/'+CONFIG.RESERVE_CHANNEL);
+      } else if(item.id){
+        openLink(`https://t.me/${CONFIG.CHANNEL}/${item.id}`);
+      } else {
+        $q.value=item.t.replace(/\s*\(\d{4}\)\s*$/,'');
+        switchTab('search');runSearch();window.scrollTo(0,0);
+      }
+    });
+    frag.appendChild(div);
+  }
+  $genreMovies.appendChild(frag);
+  if(tg?.BackButton){tg.BackButton.show();}
+}
+
+function backToGenres(){
+  $genreDetail.classList.add('hidden');
+  $genreHome.classList.remove('hidden');
+  if(tg?.BackButton) tg.BackButton.hide();
+}
+document.getElementById('genreBack').addEventListener('click',backToGenres);
+if(tg?.BackButton) tg.BackButton.onClick(backToGenres);
+
+// ════ ВКЛАДКА: ТОП ЗУБАРЕВА ════
+const $topList=document.getElementById('topList');
+
+function buildTop(filter){
+  curTopFilter=filter;
+  $topList.innerHTML='';
+  let data=RATINGS.filter(r=>r.score!=null&&r.score>=8);
+  if(filter==='10') data=data.filter(r=>r.score>=10);
+  else if(filter==='9') data=data.filter(r=>r.score>=9&&r.score<10);
+  else if(filter==='8') data=data.filter(r=>r.score>=8&&r.score<9);
+  data=data.sort((a,b)=>b.score-a.score||b.id-a.id);
+  const frag=document.createDocumentFragment();
+  for(const r of data){
+    const sc=r.score>=10?'score-10':r.score>=9?'score-9':'score-8';
+    const isB=CONFIG.BLOCKED[r.id];
+    const div=document.createElement('div');
+    div.className='rating-card';
+    div.innerHTML=`<div class="rtop">`+
+      `<div class="score-badge ${sc}">${r.score}</div>`+
+      `<div><div class="rtitle">${esc(r.title)}</div>`+
+      (r.raw?`<div class="rquote">«${esc(r.raw.slice(0,90))}»</div>`:'')+'</div></div>'+
+      `<div class="rmeta">${r.date}${isB?' · <span style="color:var(--red)">🚫 в резерве</span>':''}</div>`;
+    div.addEventListener('click',()=>{
+      if(isB) openLink(isB.url);
+      else openLink(`https://t.me/${CONFIG.CHANNEL}/${r.id}`);
+    });
+    frag.appendChild(div);
+  }
+  $topList.appendChild(frag);
+  document.getElementById('topTitle').textContent=`⭐ Лучшее по версии Зубарева (${data.length} фильмов)`;
+}
+
+document.getElementById('topFilters').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-score]');
+  if(!btn) return;
+  document.querySelectorAll('#topFilters [data-score]').forEach(b=>{
+    b.style.borderColor='var(--hint)';b.classList.remove('active');});
+  btn.style.borderColor='var(--accent)';btn.classList.add('active');
+  buildTop(btn.dataset.score);
+});
+
+// ════ ВКЛАДКА: НОВОЕ ════
+const $newList=document.getElementById('newList');
+let newPosts=[];
+
+function buildNew(){
+  newPosts=INDEX.slice().sort((a,b)=>b.post.id-a.post.id);
+  document.getElementById('newStatus').innerHTML='<span class="pill">Последние '+Math.min(newPosts.length,50)+' записей</span>';
+  renderNewChunk();
+}
+function renderNewChunk(){
+  const chunk=newPosts.slice(newShown,newShown+(newShown===0?PAGE:PAGE_MORE));
+  const frag=document.createDocumentFragment();
+  for(const e of chunk) frag.appendChild(makePostCard(e.post,'',false,null));
+  $newList.appendChild(frag);
+  newShown+=chunk.length;
+}
+
+// ════ ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ════
+function switchTab(name){
+  document.querySelectorAll('.tab[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='tab-'+name));
+  // сбрасываем жанр-экран при переключении
+  if(name!=='genres'){$genreDetail.classList.add('hidden');$genreHome.classList.remove('hidden');}
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.tab[data-tab]').forEach(t=>{
+  t.addEventListener('click',()=>switchTab(t.dataset.tab));
+});
+
+// ════ ИНФРАСТРУКТУРА ════
+document.getElementById('reserveTop').addEventListener('click',()=>openLink('https://t.me/'+CONFIG.RESERVE_CHANNEL));
+document.getElementById('helpLink').addEventListener('click',e=>{e.preventDefault();openLink(CONFIG.HELP_URL);});
+
+// подгрузка при скролле
+window.addEventListener('scroll',()=>{
+  if(window.innerHeight+window.scrollY<document.body.offsetHeight-250) return;
+  const active=document.querySelector('.screen.active')?.id;
+  if(active==='tab-search'&&searchShown<searchResults.length) renderSearchChunk();
+  if(active==='tab-new'&&newShown<newPosts.length) renderNewChunk();
+});
+
+// ════ ЗАГРУЗКА ДАННЫХ ════
+Promise.all([
+  fetch('posts.json',{cache:'no-store'}).then(r=>r.json()),
+  fetch('genres.json',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+  fetch('ratings.json',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+]).then(([posts,genres,ratings])=>{
+  POSTS=posts.filter(p=>!p.text.includes('lvlx.click'));
+  GENRES=genres;
+  RATINGS=ratings;
+}).catch(()=>{
+  POSTS=[{id:1,date:'',text:'Не удалось загрузить posts.json'}];
+}).finally(()=>{
+  buildIndex();
+  buildGenreGrid();
+  buildTop('all');
+  buildNew();
+  $sText.textContent=`В архиве: ${POSTS.length} записей. Введите запрос.`;
+});
+
 })();
 </script>
 </body>
