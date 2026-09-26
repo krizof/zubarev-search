@@ -167,6 +167,12 @@
     </div>
     <button class="gobtn" id="go">Найти</button>
   </div>
+  <!-- Фильтры поиска -->
+  <div id="searchFilters" class="hidden" style="display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:12px;color:var(--hint)">Сортировка:</span>
+    <button id="sortRel" style="border:1px solid var(--accent);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--accent);cursor:pointer;font-weight:600">По совпадению</button>
+    <button id="sortKP" style="border:1px solid var(--hint);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--hint);cursor:pointer">По рейтингу КП</button>
+  </div>
   <div class="status" id="searchStatus"><span class="pill" id="searchText">Загружаю…</span></div>
   <div class="list" id="searchResults"></div>
   <div class="empty hidden" id="searchEmpty"></div>
@@ -240,6 +246,7 @@ const CONFIG = {
    1556: {url:'https://t.me/rezervzub/40',    date:'25.07.2026', title:'Годзилла 2: Король монстров'},
    1572: {url:'https://t.me/rezervzub/27',    date:'14.07.2026', title:'Хищник: Планета смерти'},
    1621: {url:'https://t.me/rezervzub/24',    date:'14.07.2026', title:'Райя и последний дракон'},
+   1910: {url:'https://t.me/rezervzub',       date:'21.09.2026', title:'Обсессия'},
   }
 };
 
@@ -258,61 +265,105 @@ let POSTS=[], GENRES=[], RATINGS=[], INDEX=[];
 const PAGE=5, PAGE_MORE=15;
 let searchResults=[], searchShown=0, newShown=0, curTopFilter='all';
 
-// ════ ПОИСКОВЫЙ ДВИЖОК ════
-const RU2EN={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya"};
-const normalize=s=>(s||'').toLowerCase().replace(/ё/g,'е').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
-const translit=s=>{let o='';for(const c of s)o+=(RU2EN[c]!==undefined?RU2EN[c]:c);return o;};
-function grams(s){const set=new Set(),p=' '+s+' ';for(let i=0;i<p.length-1;i++)set.add(p.slice(i,i+2));for(let i=0;i<p.length-2;i++)set.add(p.slice(i,i+3));return set;}
-const tgc=new Map();
-function tokGrams(t){let g=tgc.get(t);if(g)return g;g=new Set();const p=' '+t+' ';for(let i=0;i<p.length-1;i++)g.add(p.slice(i,i+2));tgc.set(t,g);return g;}
-function dice(a,b){const ga=tokGrams(a),gb=tokGrams(b);let h=0;for(const x of ga)if(gb.has(x))h++;return 2*h/(ga.size+gb.size);}
-const sc=new Map();
-function skel(t){let s=sc.get(t);if(s!==undefined)return s;s=t.replace(/[аеиоуыэюяйьъaeiouy]/g,'').replace(/(.)\1+/g,'$1');sc.set(t,s);return s;}
+// ════ ПОИСКОВЫЙ ДВИЖОК v2 ════
+  // Поиск по режиссёру/актёрам/жанру, английские запросы,
+  // фильтр по году/рейтингу КП, сортировка по КП
+  const RU2EN={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya"};
+  const EN2RU={"batman":"бэтмен","spider":"паук","man":"человек","iron":"железный","captain":"капитан","avengers":"мстители","matrix":"матрица","terminator":"терминатор","gladiator":"гладиатор","alien":"чужой","predator":"хищник","joker":"джокер","hulk":"халк","thor":"тор","blade":"блэйд","rocky":"рокки"};
+  const GENRE_ALIASES={"ужасы":["horror","ужас","хоррор"],"комедия":["comedy","комед","смешн"],"боевик":["action","экшн","боев"],"триллер":["thriller"],"фантастика":["sci-fi","фантаст","нф"],"фэнтези":["fantasy","фэнтез"],"драма":["drama","драм"],"мультфильм":["cartoon","мульт","аниме","animation"],"криминал":["crime","криминал"],"приключения":["adventure","приключ"],"мистика":["mystery","мистик"]};
 
-function buildIndex(){
-  INDEX=POSTS.map(p=>{
-    const n=normalize(p.text),f=n+' '+translit(n);
-    return{post:p,norm:f,tokens:f.split(' ').filter(Boolean),grams:grams(f)};
-  });
-}
+  const normalize=s=>(s||'').toLowerCase().replace(/ё/g,'е').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
+  const translit=s=>{let o='';for(const c of s)o+=RU2EN[c]!==undefined?RU2EN[c]:c;return o;};
+  const untranslit=s=>s.split(' ').map(w=>EN2RU[w]||w).join(' ');
+  function grams(s){const set=new Set(),p=' '+s+' ';for(let i=0;i<p.length-1;i++)set.add(p.slice(i,i+2));for(let i=0;i<p.length-2;i++)set.add(p.slice(i,i+3));return set;}
+  const tgc=new Map();
+  function tokGrams(t){let g=tgc.get(t);if(g)return g;g=new Set();const p=' '+t+' ';for(let i=0;i<p.length-1;i++)g.add(p.slice(i,i+2));tgc.set(t,g);return g;}
+  function dice(a,b){const ga=tokGrams(a),gb=tokGrams(b);let h=0;for(const x of ga)if(gb.has(x))h++;return 2*h/(ga.size+gb.size);}
+  const scc=new Map();
+  function skel(t){let s=scc.get(t);if(s!==undefined)return s;s=t.replace(/[аеиоуыэюяйьъaeiouy]/g,'').replace(/(.)+/g,'$1');scc.set(t,s);return s;}
 
-function scoreEntry(e,qN,qT,qG){
-  let s=0;
-  if(qN.length>=2 && e.norm.includes(qN)) s+=100;
-  for(const qt of qT){
-    if(qt.length<2) continue;
-    let b=0;
-    for(const t of e.tokens){
-      if(t===qt) b=Math.max(b,40);
-      else if(t.startsWith(qt)) b=Math.max(b,25);
-      else if(qt.length>=3&&t.includes(qt)) b=Math.max(b,15);
-      else if(qt.length>=4&&Math.abs(t.length-qt.length)<=3){
-        const d=dice(qt,t);
-        if(d>=0.6) b=Math.max(b,d*35);
-        else{const sq=skel(qt);if(sq.length>=3&&sq===skel(t))b=Math.max(b,22);}
-      }
+  function parseQuery(q){
+    const r={text:q,year:null,yearRange:null,minKP:null,genre:null,tokens:[]};
+    let rem=q;
+    const ym=rem.match(/\b(19|20)(\d{2})\b/);
+    if(ym){r.year=parseInt(ym[0]);rem=rem.replace(ym[0],'').trim();}
+    const dm=rem.match(/(\d{2})[- ]?е/);
+    if(dm){const d=parseInt(dm[1]);r.yearRange=d<30?[2000+d,2000+d+9]:[1900+d,1900+d+9];rem=rem.replace(dm[0],'').trim();}
+    const km=rem.match(/(\d+(?:[.,]\d+)?)\s*\+/);
+    if(km&&parseFloat(km[1])>=5&&parseFloat(km[1])<=10){r.minKP=parseFloat(km[1].replace(',','.'));rem=rem.replace(km[0],'').trim();}
+    for(const[genre,aliases]of Object.entries(GENRE_ALIASES)){
+      if(rem.includes(genre)||aliases.some(a=>rem.includes(a))){r.genre=genre;break;}
     }
-    s+=b;
+    r.tokens=rem.split(' ').filter(t=>t.length>=2);
+    return r;
   }
-  if(qG.size){let h=0;for(const g of qG)if(e.grams.has(g))h++;s+=(h/qG.size)*30;}
-  if(e.tokens.length>150) s*=0.5;
-  return s;
-}
 
-function search(query){
-  const qn=normalize(query);
-  if(!qn) return [];
-  const qtr=translit(qn),qs=qn===qtr?[qn]:[qn,qtr];
-  const out=[];
-  for(const e of INDEX){
-    let b=0;
-    for(const q of qs){const st=scoreEntry(e,q,q.split(' ').filter(Boolean),grams(q));if(st>b)b=st;}
-    if(b>=18) out.push({entry:e,s:b});
+  function buildIndex(){
+    INDEX=POSTS.map(p=>{
+      const meta=p.meta||{};
+      const normTitle=normalize(meta.title||'');
+      const normMeta=normalize([meta.director||'',meta.cast||'',meta.genre||''].join(' '));
+      const fullText=normalize(p.text);
+      const fullNorm=normTitle+' '+normMeta+' '+fullText+' '+translit(normTitle)+' '+untranslit(normTitle);
+      return{post:p,meta,normTitle,normMeta,norm:fullNorm,tokens:fullNorm.split(' ').filter(Boolean),grams:grams(fullNorm)};
+    });
   }
-  return out.sort((a,b)=>b.s-a.s||b.entry.post.id-a.entry.post.id);
-}
 
-// ════ УТИЛИТЫ РЕНДЕРА ════
+  function scorePost(entry,parsed,qGrams){
+    const{text:qN,tokens:qT,year,yearRange,minKP,genre}=parsed;
+    let s=0;
+    const meta=entry.meta||{};
+    if(year&&meta.year&&Math.abs(meta.year-year)>1) return -1;
+    if(yearRange&&meta.year&&(meta.year<yearRange[0]||meta.year>yearRange[1])) return -1;
+    if(minKP&&meta.kp&&meta.kp<minKP) return -1;
+    if(genre){const aliases=GENRE_ALIASES[genre]||[genre];if(!aliases.some(a=>entry.normMeta.includes(a))&&!entry.normMeta.includes(genre))s-=20;}
+    if(qN.length>=2){
+      if(entry.normTitle.includes(qN))s+=120;
+      else if(entry.normMeta.includes(qN))s+=60;
+      else if(entry.norm.includes(qN))s+=40;
+    }
+    for(const qt of qT){
+      if(qt.length<2)continue;
+      let best=0;
+      for(const t of entry.normTitle.split(' ')){
+        if(t===qt)best=Math.max(best,50);
+        else if(t.startsWith(qt))best=Math.max(best,35);
+        else if(qt.length>=3&&t.includes(qt))best=Math.max(best,20);
+        else if(qt.length>=4&&Math.abs(t.length-qt.length)<=3){const d=dice(qt,t);if(d>=0.6)best=Math.max(best,d*40);else{const sq=skel(qt);if(sq.length>=3&&sq===skel(t))best=Math.max(best,25);}}
+      }
+      for(const t of entry.normMeta.split(' ')){
+        if(t===qt)best=Math.max(best,40);
+        else if(t.startsWith(qt))best=Math.max(best,25);
+        else if(qt.length>=3&&t.includes(qt))best=Math.max(best,15);
+      }
+      for(const t of entry.tokens){if(t===qt)best=Math.max(best,15);else if(t.startsWith(qt))best=Math.max(best,10);}
+      s+=best;
+    }
+    if(qGrams.size){let h=0;for(const g of qGrams)if(entry.grams.has(g))h++;s+=(h/qGrams.size)*25;}
+    if(meta.kp)s+=(meta.kp-7)*0.5;
+    if(entry.tokens.length>150)s*=0.5;
+    return s;
+  }
+
+  let sortMode='relevance';
+  function search(query){
+    const qn=normalize(query);
+    if(!qn)return[];
+    const parsed=parseQuery(qn);
+    const qtr=translit(qn),qunt=untranslit(qn);
+    const allGrams=grams([qn,qtr,qunt].join(' '));
+    const variants=[parsed,{...parsed,text:qtr,tokens:qtr.split(' ').filter(t=>t.length>=2)},{...parsed,text:qunt,tokens:qunt.split(' ').filter(t=>t.length>=2)}];
+    const out=[];
+    for(const e of INDEX){
+      let best=0,blocked=false;
+      for(const v of variants){const s=scorePost(e,v,allGrams);if(s===-1){blocked=true;break;}if(s>best)best=s;}
+      if(!blocked&&best>=18)out.push({entry:e,s:best});
+    }
+    if(sortMode==='kp')return out.sort((a,b)=>(b.entry.meta.kp||0)-(a.entry.meta.kp||0));
+    return out.sort((a,b)=>b.s-a.s||b.entry.post.id-a.entry.post.id);
+  }
+
+  // ════ УТИЛИТЫ РЕНДЕРА ════
 const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function highlight(text,q){
   let safe=esc(text);
@@ -375,6 +426,7 @@ function runSearch(){
   const q=$q.value.trim();
   $clear.style.display=q?'block':'none';
   $sResults.innerHTML='';$sEmpty.classList.add('hidden');searchShown=0;
+  document.getElementById('searchFilters').classList.add('hidden');
   if(!q){
     $sStatus.classList.remove('hidden');
     $sText.textContent=`В архиве: ${POSTS.length} записей. Введите запрос.`;
@@ -391,6 +443,7 @@ function runSearch(){
   }
   $sStatus.classList.remove('hidden');
   $sText.textContent=`Найдено: ${searchResults.length}`;
+  document.getElementById('searchFilters').classList.remove('hidden');
   renderSearchChunk();
 }
 
@@ -398,6 +451,22 @@ document.getElementById('go').addEventListener('click',runSearch);
 $q.addEventListener('keydown',e=>{if(e.key==='Enter'){$q.blur();runSearch();}});
 $q.addEventListener('input',()=>{$clear.style.display=$q.value?'block':'none';if(!$q.value.trim())runSearch();});
 $clear.addEventListener('click',()=>{$q.value='';runSearch();});
+
+// Сортировка
+document.getElementById('sortRel').addEventListener('click',function(){
+  sortMode='relevance';
+  this.style.cssText='border:1px solid var(--accent);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--accent);cursor:pointer;font-weight:600';
+  const kpBtn=document.getElementById('sortKP');
+  kpBtn.style.cssText='border:1px solid var(--hint);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--hint);cursor:pointer';
+  if($q.value.trim())runSearch();
+});
+document.getElementById('sortKP').addEventListener('click',function(){
+  sortMode='kp';
+  this.style.cssText='border:1px solid var(--accent);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--accent);cursor:pointer;font-weight:600';
+  const relBtn=document.getElementById('sortRel');
+  relBtn.style.cssText='border:1px solid var(--hint);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--hint);cursor:pointer';
+  if($q.value.trim())runSearch();
+});
 
 // ════ ВКЛАДКА: ЖАНРЫ ════
 const $genreGrid=document.getElementById('genreGrid');
@@ -465,6 +534,32 @@ const $topList=document.getElementById('topList');
 function buildTop(filter){
   curTopFilter=filter;
   $topList.innerHTML='';
+  // Для collab берём все посты с гостями из INDEX
+  if(filter==='collab'){
+    const collabPosts=INDEX.filter(e=>e.meta&&e.meta.guest)
+      .sort((a,b)=>b.post.id-a.post.id);
+    $topList.innerHTML='';
+    document.getElementById('topTitle').textContent=`👥 С гостями (${collabPosts.length} фильмов)`;
+    const frag=document.createDocumentFragment();
+    for(const e of collabPosts){
+      const p=e.post,meta=e.meta||{};
+      const isB=CONFIG.BLOCKED[p.id];
+      const div=document.createElement('div');
+      div.className='rating-card';
+      div.innerHTML=`<div class="rtop">`+
+        `<div class="score-badge score-8" style="font-size:22px;width:46px;height:46px">👥</div>`+
+        `<div><div class="rtitle">${esc(meta.title||'')}</div>`+
+        `<div class="rquote">вместе с ${esc(meta.guest||'')}</div></div></div>`+
+        `<div class="rmeta">${p.date?p.date.slice(0,10):''}${meta.kp?' · КП '+meta.kp:''}${isB?' · <span style="color:var(--red)">🚫 в резерве</span>':''}</div>`;
+      div.addEventListener('click',()=>{
+        if(isB)openLink(isB.url);
+        else openLink(`https://t.me/${CONFIG.CHANNEL}/${p.id}`);
+      });
+      frag.appendChild(div);
+    }
+    $topList.appendChild(frag);
+    return;
+  }
   let data=RATINGS.filter(r=>r.score!=null&&r.score>=8);
   if(filter==='10') data=data.filter(r=>r.score>=10);
   else if(filter==='9') data=data.filter(r=>r.score>=9&&r.score<10);
