@@ -3,38 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Зубарев смотрит</title>
+<title>Зубарев смотрит 2.0</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root {
-    --bg:    var(--tg-theme-bg-color, #17212b);
-    --bg2:   var(--tg-theme-secondary-bg-color, #0e1621);
-    --text:  var(--tg-theme-text-color, #f5f5f5);
-    --hint:  var(--tg-theme-hint-color, #708499);
-    --link:  var(--tg-theme-link-color, #6ab3f3);
-    --btn:   var(--tg-theme-button-color, #5288c1);
+    --bg:    var(--tg-theme-bg-color, #121721);
+    --bg2:   var(--tg-theme-secondary-bg-color, #0b0f17);
+    --text:  var(--tg-theme-text-color, #f5f7fb);
+    --hint:  var(--tg-theme-hint-color, #8f9aae);
+    --link:  var(--tg-theme-link-color, #8ab4ff);
+    --btn:   var(--tg-theme-button-color, #6d8cff);
     --btn-t: var(--tg-theme-button-text-color, #ffffff);
-    --card:  var(--tg-theme-section-bg-color, #232e3c);
-    --accent:var(--tg-theme-accent-text-color, #6ab2f2);
+    --card:  var(--tg-theme-section-bg-color, #1b2230);
+    --accent:var(--tg-theme-accent-text-color, #9eb7ff);
     --red:   #e05a52;
     --gold:  #f5a623;
     --green: #4caf7d;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{background:var(--bg2);color:var(--text);
+  html,body{background:radial-gradient(circle at 85% -10%,#27365c 0,transparent 33%),var(--bg2);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
   body{padding-bottom:80px}
 
   /* ── ШАПКА ── */
-  .header{display:flex;align-items:center;gap:10px;padding:12px 16px 6px}
-  .logo{width:40px;height:40px;border-radius:11px;flex-shrink:0;
-    background:linear-gradient(135deg,#e0483f,#8b1f1b);
+  .header{display:flex;align-items:center;gap:11px;padding:18px 16px 9px}
+  .logo{width:44px;height:44px;border-radius:14px;flex-shrink:0;
+    background:linear-gradient(135deg,#9eb7ff,#6978f7 52%,#bd75ff);
     display:flex;align-items:center;justify-content:center;font-size:20px}
   .hinfo{flex:1;min-width:0}
-  .hinfo h1{font-size:16px;font-weight:700;line-height:1.2}
+  .hinfo h1{font-size:17px;font-weight:800;line-height:1.2;letter-spacing:-.2px}
   .hinfo .sub{font-size:12px;color:var(--hint);margin-top:1px}
-  .reserve-top{flex-shrink:0;border:none;background:var(--card);color:var(--text);
-    border-radius:10px;padding:7px 11px;font-size:13px;font-weight:600;cursor:pointer}
+  .reserve-top{flex-shrink:0;border:1px solid rgba(158,183,255,.3);background:rgba(158,183,255,.12);color:var(--text);
+    border-radius:11px;padding:8px 11px;font-size:13px;font-weight:700;cursor:pointer}
   .reserve-top:active{opacity:.7}
 
   /* ── ВКЛАДКИ ── */
@@ -137,6 +137,15 @@
     padding:22px 16px 6px;line-height:1.7}
   .footer a{color:var(--link);text-decoration:none}
   .hidden{display:none!important}
+  .archive-note{margin:4px 12px 11px;padding:10px 12px;border:1px solid rgba(158,183,255,.16);border-radius:13px;
+    background:linear-gradient(100deg,rgba(109,140,255,.14),rgba(189,117,255,.08));font-size:12.5px;color:var(--hint);line-height:1.45}
+  .archive-note strong{color:var(--text)}
+  .post,.rating-card,.genre,.movie{border:1px solid rgba(255,255,255,.045);box-shadow:0 7px 22px rgba(0,0,0,.12)}
+  .post:hover,.rating-card:hover,.genre:hover,.movie:hover{border-color:rgba(158,183,255,.28)}
+  .post .title{font-size:15px;font-weight:750;letter-spacing:-.12px;line-height:1.35;margin:1px 0 7px}
+  .post .actions{padding-top:1px;border-top:1px solid rgba(255,255,255,.06)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media (min-width:680px){body{max-width:740px;margin:0 auto;border-left:1px solid rgba(255,255,255,.05);border-right:1px solid rgba(255,255,255,.05)}}
 </style>
 </head>
 <body>
@@ -144,10 +153,10 @@
 <div class="header">
   <div class="logo">🎬</div>
   <div class="hinfo">
-    <h1>Зубарев смотрит</h1>
-    <div class="sub">Поиск по записям канала</div>
+    <h1>Зубарев смотрит 2.0</h1>
+    <div class="sub">Удобный поиск по архиву</div>
   </div>
-  <button class="reserve-top" id="reserveTop">📦 Резерв</button>
+  <button class="reserve-top" id="reserveTop">↗ Канал</button>
 </div>
 
 <!-- ВКЛАДКИ -->
@@ -160,6 +169,7 @@
 
 <!-- ═══ ПОИСК ═══ -->
 <div class="screen active" id="tab-search">
+  <div class="archive-note"><strong>Архив переехал в новый канал.</strong> Выбирай фильм здесь, а карточка откроет нужную запись в <b>@zubarefffwatch</b>.</div>
   <div class="searchbar">
     <div class="wrap">
       <input id="q" type="search" placeholder="Название, жанр или год…" autocomplete="off">
@@ -223,32 +233,9 @@
 <script>
 (function(){
 const CONFIG = {
-  CHANNEL: 'zubareffflook',
-  RESERVE_CHANNEL: 'rezervzub',
+  CHANNEL: 'zubarefffwatch',
   HELP_URL: 'https://telegra.ph/Esli-u-vas-lagayutzavisayutne-rabotayut-07-02',
-  BLOCKED: {
-    98:  {url:'https://t.me/rezervzub',       date:'01.03.2026', title:'Гарри Поттер и Дары Смерти: Часть I'},
-    139: {url:'https://t.me/rezervzub/33',    date:'02.08.2026', title:'Волк с Уолл-стрит'},
-    502: {url:'https://t.me/rezervzub',       date:'23.02.2026', title:'Интерстеллар'},
-    673: {url:'https://t.me/rezervzub/21',    date:'14.07.2026', title:'Дэдпул и Росомаха'},
-    676: {url:'https://t.me/rezervzub/50',    date:'31.07.2026', title:'Один дома'},
-    697: {url:'https://t.me/rezervzub/4',     date:'11.07.2026', title:'В поисках Немо'},
-    752: {url:'https://t.me/rezervzub/17',    date:'18.07.2026', title:'Властелин колец: Две крепости'},
-    759: {url:'https://t.me/rezervzub/46',    date:'28.07.2026', title:'Властелин колец: Возвращение короля'},
-    806: {url:'https://t.me/rezervzub/37',    date:'22.07.2026', title:'Иллюзия обмана'},
-    896: {url:'https://t.me/rezervzub/2',     date:'13.07.2026', title:'ВАЛЛ·И'},
-    978: {url:'https://t.me/rezervzub/14',    date:'19.07.2026', title:'Джентльмены'},
-   1016: {url:'https://t.me/rezervzub/30',    date:'13.04.2026', title:'Гренландия'},
-   1036: {url:'https://t.me/rezervzub/53',    date:'04.08.2026', title:'Семья по-быстрому'},
-   1143: {url:'https://t.me/rezervzub/43',    date:'30.07.2026', title:'Храбрая сердцем'},
-   1201: {url:'https://t.me/rezervzub/7',     date:'14.07.2026', title:'Аватар: Путь воды'},
-   1292: {url:'https://t.me/rezervzub',       date:'13.07.2026', title:'Мстители: Война бесконечности'},
-   1398: {url:'https://t.me/rezervzub/12',    date:'13.07.2026', title:'Алиса в Зазеркалье'},
-   1556: {url:'https://t.me/rezervzub/40',    date:'25.07.2026', title:'Годзилла 2: Король монстров'},
-   1572: {url:'https://t.me/rezervzub/27',    date:'14.07.2026', title:'Хищник: Планета смерти'},
-   1621: {url:'https://t.me/rezervzub/24',    date:'14.07.2026', title:'Райя и последний дракон'},
-   1910: {url:'https://t.me/rezervzub',       date:'21.09.2026', title:'Обсессия'},
-  }
+  BLOCKED: {}
 };
 
 const tg = window.Telegram?.WebApp;
@@ -389,6 +376,7 @@ function excerpt(text,q,max=300){
 function makePostCard(p,query,showScore,score){
   const isB=CONFIG.BLOCKED[p.id];
   const isLow=/#low\b/i.test(p.text);
+  const title=p.meta?.title||'';
   const div=document.createElement('div');
   div.className='post';
   let meta=`<span>${fmtDate(p.date)}</span>`;
@@ -399,6 +387,7 @@ function makePostCard(p,query,showScore,score){
     ?`<span class="to-reserve">📦 Открыть в резерве →</span>`
     :`<span>Открыть запись →</span>`;
   div.innerHTML=`<div class="meta">${meta}</div>`+
+    (title?`<div class="title">${esc(title)}</div>`:'')+
     `<div class="body">${highlight(excerpt(p.text,query),query)}</div>`+
     `<div class="actions">${action}</div>`;
   div.addEventListener('click',()=>{
@@ -437,9 +426,9 @@ function runSearch(){
   if(!searchResults.length){
     $sStatus.classList.add('hidden');
     $sEmpty.innerHTML=`По запросу «${esc(q)}» ничего не найдено.<br>Попробуйте одно слово из названия.<br>Фильм мог попасть под блокировку.`+
-      `<br><span class="cta" id="emptyRes">📦 Открыть Резерв</span>`;
+      `<br><span class="cta" id="emptyRes">↗ Открыть новый канал</span>`;
     $sEmpty.classList.remove('hidden');
-    document.getElementById('emptyRes')?.addEventListener('click',()=>openLink('https://t.me/'+CONFIG.RESERVE_CHANNEL));
+    document.getElementById('emptyRes')?.addEventListener('click',()=>openLink('https://t.me/'+CONFIG.CHANNEL));
     return;
   }
   $sStatus.classList.remove('hidden');
@@ -507,7 +496,7 @@ function showGenre(g){
       if(isB){
         // ищем прямую ссылку в BLOCKED по title
         const bEntry=Object.values(CONFIG.BLOCKED).find(b=>item.t.includes(b.title)||b.title.includes(item.t.replace(/\s*\(\d{4}\)/,'')));
-        openLink(bEntry?bEntry.url:'https://t.me/'+CONFIG.RESERVE_CHANNEL);
+        openLink(bEntry?bEntry.url:'https://t.me/'+CONFIG.CHANNEL);
       } else if(item.id){
         openLink(`https://t.me/${CONFIG.CHANNEL}/${item.id}`);
       } else {
@@ -626,7 +615,7 @@ document.querySelectorAll('.tab[data-tab]').forEach(t=>{
 });
 
 // ════ ИНФРАСТРУКТУРА ════
-document.getElementById('reserveTop').addEventListener('click',()=>openLink('https://t.me/'+CONFIG.RESERVE_CHANNEL));
+document.getElementById('reserveTop').addEventListener('click',()=>openLink('https://t.me/'+CONFIG.CHANNEL));
 document.getElementById('helpLink').addEventListener('click',e=>{e.preventDefault();openLink(CONFIG.HELP_URL);});
 
 // подгрузка при скролле
