@@ -81,5 +81,6 @@
   document.addEventListener('keydown',e=>{if(e.key==='/'&&!$('details').open&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('query').focus();}});
   window.addEventListener('popstate',()=>{closeDetails();restoreURL();});
   window.addEventListener('storage',e=>{if(e.key==='zubarev:saved'){const v=readStore('zubarev:saved',[]);saved=new Set(Array.isArray(v)?v.filter(Number.isSafeInteger):[]);render();}});
+  window.addEventListener('load',()=>{try{tg()?.ready();tg()?.expand();tg()?.BackButton?.onClick(closeDetails);updateTheme();}catch{}});
   load();
 })();
