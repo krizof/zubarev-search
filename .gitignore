@@ -1,0 +1,7 @@
+.local/
+__pycache__/
+.pytest_cache/
+*.session*
+node_modules/
+test-results/
+

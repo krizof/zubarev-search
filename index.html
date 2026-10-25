@@ -1,651 +1,72 @@
-<!DOCTYPE html>
-<html lang="ru">
+<!doctype html>
+<html lang="ru" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Зубарев смотрит 2.0</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-  :root {
-    --bg:    var(--tg-theme-bg-color, #121721);
-    --bg2:   var(--tg-theme-secondary-bg-color, #0b0f17);
-    --text:  var(--tg-theme-text-color, #f5f7fb);
-    --hint:  var(--tg-theme-hint-color, #8f9aae);
-    --link:  var(--tg-theme-link-color, #8ab4ff);
-    --btn:   var(--tg-theme-button-color, #6d8cff);
-    --btn-t: var(--tg-theme-button-text-color, #ffffff);
-    --card:  var(--tg-theme-section-bg-color, #1b2230);
-    --accent:var(--tg-theme-accent-text-color, #9eb7ff);
-    --red:   #e05a52;
-    --gold:  #f5a623;
-    --green: #4caf7d;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{background:radial-gradient(circle at 85% -10%,#27365c 0,transparent 33%),var(--bg2);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
-  body{padding-bottom:80px}
-
-  /* ── ШАПКА ── */
-  .header{display:flex;align-items:center;gap:11px;padding:18px 16px 9px}
-  .logo{width:44px;height:44px;border-radius:14px;flex-shrink:0;
-    background:linear-gradient(135deg,#9eb7ff,#6978f7 52%,#bd75ff);
-    display:flex;align-items:center;justify-content:center;font-size:20px}
-  .hinfo{flex:1;min-width:0}
-  .hinfo h1{font-size:17px;font-weight:800;line-height:1.2;letter-spacing:-.2px}
-  .hinfo .sub{font-size:12px;color:var(--hint);margin-top:1px}
-  .reserve-top{flex-shrink:0;border:1px solid rgba(158,183,255,.3);background:rgba(158,183,255,.12);color:var(--text);
-    border-radius:11px;padding:8px 11px;font-size:13px;font-weight:700;cursor:pointer}
-  .reserve-top:active{opacity:.7}
-
-  /* ── ВКЛАДКИ ── */
-  .tabs{display:flex;gap:0;padding:10px 12px 0;overflow-x:auto;scrollbar-width:none}
-  .tabs::-webkit-scrollbar{display:none}
-  .tab{border:none;background:transparent;color:var(--hint);
-    font-size:14px;font-weight:600;padding:7px 14px 10px;cursor:pointer;
-    border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-  .tab:active{opacity:.7}
-
-  /* ── ПОИСК ── */
-  .searchbar{display:flex;gap:8px;padding:10px 12px;
-    position:sticky;top:0;background:var(--bg2);z-index:10}
-  .searchbar .wrap{position:relative;flex:1}
-  .searchbar input{width:100%;border:none;outline:none;border-radius:12px;
-    padding:11px 34px 11px 14px;font-size:15px;background:var(--card);color:var(--text)}
-  .searchbar input::placeholder{color:var(--hint)}
-  .clearbtn{position:absolute;right:6px;top:50%;transform:translateY(-50%);
-    width:26px;height:26px;border:none;border-radius:50%;background:transparent;
-    color:var(--hint);font-size:16px;cursor:pointer;display:none}
-  .gobtn{border:none;border-radius:12px;padding:0 18px;background:var(--btn);
-    color:var(--btn-t);font-size:14px;font-weight:700;cursor:pointer}
-  .gobtn:active{opacity:.8}
-
-  /* ── СЕКЦИИ ── */
-  .sec-title{font-size:12px;font-weight:700;letter-spacing:.07em;
-    text-transform:uppercase;color:var(--hint);padding:8px 14px 6px}
-  .status{text-align:center;font-size:13px;color:var(--hint);padding:6px 14px 10px}
-  .status .pill{display:inline-block;background:var(--card);border-radius:14px;padding:6px 14px}
-
-  /* ── ЖАНРЫ ── */
-  .genres{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 4px}
-  .genre{background:var(--card);border:none;border-radius:12px;
-    padding:10px 12px;font-size:13.5px;color:var(--text);
-    text-align:left;cursor:pointer;display:flex;align-items:center;gap:8px}
-  .genre:active{opacity:.7}
-  .genre .em{font-size:15px}
-  .genre .cnt{color:var(--hint);font-size:12px;margin-left:auto}
-
-  /* ── ЖАНР-ЭКРАН ── */
-  .back-row{display:flex;align-items:center;gap:10px;padding:4px 12px 10px}
-  .back-btn{border:none;background:var(--card);color:var(--text);
-    border-radius:10px;padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
-  .back-btn:active{opacity:.7}
-  .gscreen-title{font-size:16px;font-weight:700}
-  .gscreen-count{font-size:13px;color:var(--hint);margin-left:auto}
-  .movie{background:var(--card);border-radius:12px;padding:10px 13px;
-    display:flex;align-items:center;gap:10px;cursor:pointer}
-  .movie:active{opacity:.7}
-  .movie .mtitle{font-size:14px;line-height:1.3;flex:1}
-  .movie .marrow{color:var(--hint);font-size:14px;flex-shrink:0}
-  .movie.blocked .marrow{color:var(--red)}
-
-  /* ── КАРТОЧКИ ПОСТОВ ── */
-  .post{background:var(--card);border-radius:14px;padding:12px 14px;cursor:pointer}
-  .post:active{opacity:.75}
-  .post .meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-    font-size:12px;color:var(--hint);margin-bottom:6px}
-  .post .score-tag{color:var(--accent);font-weight:700;margin-left:auto}
-  .badge{font-size:11px;font-weight:700;border-radius:7px;padding:2px 7px}
-  .badge.blocked{background:rgba(224,90,82,.15);color:var(--red)}
-  .badge.low{background:rgba(112,132,153,.18);color:var(--hint)}
-  .post .body{font-size:14.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
-  .post .body mark{background:none;color:var(--accent);font-weight:700}
-  .post .actions{display:flex;gap:14px;margin-top:8px}
-  .post .actions span{font-size:13px;font-weight:600;color:var(--link)}
-  .post .actions .to-reserve{color:var(--red)}
-
-  /* ── ТОП ОЦЕНОК ── */
-  .rating-card{background:var(--card);border-radius:14px;padding:12px 14px;cursor:pointer}
-  .rating-card:active{opacity:.75}
-  .rating-card .rtop{display:flex;align-items:center;gap:10px;margin-bottom:5px}
-  .score-badge{
-    width:46px;height:46px;border-radius:12px;flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;
-    font-size:17px;font-weight:800;
-  }
-  .score-10{background:rgba(245,166,35,.18);color:var(--gold)}
-  .score-9{background:rgba(76,175,125,.18);color:var(--green)}
-  .score-8{background:rgba(106,179,243,.18);color:var(--accent)}
-  .rating-card .rtitle{font-size:15px;font-weight:600;line-height:1.3}
-  .rating-card .rquote{font-size:13px;color:var(--hint);line-height:1.4;margin-top:2px;
-    font-style:italic}
-  .rating-card .rmeta{font-size:12px;color:var(--hint);margin-top:6px}
-
-  /* ── ПУСТОЕ СОСТОЯНИЕ ── */
-  .empty{text-align:center;color:var(--hint);padding:36px 24px;font-size:14px;line-height:1.6}
-  .empty .cta{display:inline-block;margin-top:12px;background:var(--card);
-    color:var(--text);border-radius:12px;padding:9px 16px;font-size:13.5px;
-    font-weight:600;cursor:pointer}
-
-  /* ── КОНТЕЙНЕРЫ ── */
-  .list{padding:0 12px;display:flex;flex-direction:column;gap:8px}
-  .screen{display:none}
-  .screen.active{display:block}
-
-  /* ── ПОДВАЛ ── */
-  .footer{text-align:center;color:var(--hint);font-size:12px;
-    padding:22px 16px 6px;line-height:1.7}
-  .footer a{color:var(--link);text-decoration:none}
-  .hidden{display:none!important}
-  .archive-note{margin:4px 12px 11px;padding:10px 12px;border:1px solid rgba(158,183,255,.16);border-radius:13px;
-    background:linear-gradient(100deg,rgba(109,140,255,.14),rgba(189,117,255,.08));font-size:12.5px;color:var(--hint);line-height:1.45}
-  .archive-note strong{color:var(--text)}
-  .post,.rating-card,.genre,.movie{border:1px solid rgba(255,255,255,.045);box-shadow:0 7px 22px rgba(0,0,0,.12)}
-  .post:hover,.rating-card:hover,.genre:hover,.movie:hover{border-color:rgba(158,183,255,.28)}
-  .post .title{font-size:15px;font-weight:750;letter-spacing:-.12px;line-height:1.35;margin:1px 0 7px}
-  .post .actions{padding-top:1px;border-top:1px solid rgba(255,255,255,.06)}
-  button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  @media (min-width:680px){body{max-width:740px;margin:0 auto;border-left:1px solid rgba(255,255,255,.05);border-right:1px solid rgba(255,255,255,.05)}}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#141916">
+<meta name="description" content="Фильмы, игры и стримы с Зубаревым. Поиск по названию, актёрам и жанрам, оценки и доступность записей в Telegram.">
+<meta property="og:title" content="Суперпоиск · Зубарев смотрит">
+<meta property="og:description" content="Найди тот самый фильм. Весь архив, новые записи и оценки в одном месте.">
+<title>Суперпоиск · Зубарев смотрит</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=3">
+<script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+<script src="search.js?v=3" defer></script>
+<script src="app.js?v=3" defer></script>
 </head>
 <body>
-
-<div class="header">
-  <div class="logo">🎬</div>
-  <div class="hinfo">
-    <h1>Зубарев смотрит 2.0</h1>
-    <div class="sub">Удобный поиск по архиву</div>
-  </div>
-  <button class="reserve-top" id="reserveTop">↗ Канал</button>
+<svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 3v1"/></symbol>
+<symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4Z"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/></symbol>
+</defs></svg>
+<a class="skip-link" href="#main">К каталогу</a>
+<div class="app-shell">
+<aside class="sidebar">
+<a class="brand" href="./" aria-label="Суперпоиск, главная"><span class="brand-icon"><svg><use href="#i-play"/></svg></span><span>Суперпоиск<small>ЗУБАРЕВ СМОТРИТ</small></span></a>
+<div class="sidebar-label">ТВОЯ КИНОТЕКА</div>
+<nav class="navigation" aria-label="Разделы каталога">
+<button data-tab="search" class="nav-item active" aria-current="page"><svg><use href="#i-search"/></svg>Каталог<span id="navCount"></span></button>
+<button data-tab="genres" class="nav-item"><svg><use href="#i-grid"/></svg>По жанрам</button>
+<button data-tab="top" class="nav-item"><svg><use href="#i-star"/></svg>Топ Зубарева</button>
+<button data-tab="new" class="nav-item"><svg><use href="#i-spark"/></svg>Новое</button>
+<button data-tab="unavailable" class="nav-item"><svg><use href="#i-alert"/></svg>Недоступно<span id="navUnavailable"></span></button>
+<button data-tab="saved" class="nav-item"><svg><use href="#i-bookmark"/></svg>Посмотреть позже<span id="navSaved"></span></button>
+</nav>
+<div class="sidebar-bottom"><div class="channel-note"><span class="live-dot"></span>Место для хорошего вечера<p>Все записи открываются<br>в новом Telegram-канале.</p><a href="https://t.me/zubarefffwatch" target="_blank" rel="noopener noreferrer">Перейти в канал ↗</a></div><div class="sidebar-tools"><button id="theme" class="icon-button" aria-label="Переключить светлую и тёмную тему"><svg><use href="#i-sun"/></svg></button><span>Сделано для своих</span></div></div>
+</aside>
+<div class="workspace">
+<header class="topbar"><span>АРХИВ <span class="topbar-slash">/</span> @ZUBAREFFFWATCH</span><a href="https://t.me/zubarefffwatch" target="_blank" rel="noopener noreferrer">Открыть Telegram <span>↗</span></a></header>
+<main id="main" tabindex="-1">
+<section class="hero" aria-labelledby="heroTitle"><div class="hero-copy"><div class="eyebrow"><span class="live-dot"></span>ФИЛЬМЫ. СТРИМЫ. ХОРОШАЯ КОМПАНИЯ.</div><h1 id="heroTitle">Что <span>посмотрим?</span></h1><p id="heroSubtitle">Тот самый фильм, любимая реакция или что-то новое. <br>Весь архив Зубарева теперь под рукой.</p><div class="hero-stats" id="stats" aria-label="Статистика архива"><span class="skeleton stat-skeleton"></span></div></div><a class="featured hidden" id="featured" href="#"><div class="featured-top"><span>ПОСЛЕДНИЙ ФИЛЬМ</span><svg><use href="#i-arrow"/></svg></div><div class="featured-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><span class="film-symbol">Z.</span><span class="art-caption">СМОТРИМ ВМЕСТЕ</span></div><div class="featured-bottom"><strong id="featuredTitle"></strong><span id="featuredMeta"></span></div></a></section>
+<div class="sync-line"><span id="syncStatus" aria-live="polite">Загружаем каталог…</span><button id="refresh" type="button">Проверить обновление <span>↻</span></button></div>
+<section class="catalog-section" aria-labelledby="sectionTitle">
+<div class="section-heading"><div><div class="eyebrow" id="sectionEyebrow">ВЫБИРАЙ ПОД НАСТРОЕНИЕ</div><h2 id="sectionTitle">Весь каталог</h2></div><span class="section-counter" id="sectionCount"></span></div>
+<div class="genre-grid hidden" id="genreGrid"></div>
+<div class="search-controls" id="searchControls"><form class="search-form" role="search" id="searchForm"><svg><use href="#i-search"/></svg><input id="query" type="search" placeholder="Название, актёр, режиссёр…" aria-label="Поиск по архиву" autocomplete="off" maxlength="160"><button class="icon-button hidden" id="clearQuery" type="button" aria-label="Очистить поиск"><svg><use href="#i-close"/></svg></button><kbd>/</kbd><button class="search-submit" type="submit">Найти</button></form><p class="search-hint">Можно с опечаткой, в другой раскладке или так: <button data-query="комедия 90-е 7+">комедия 90-е 7+</button></p></div>
+<div class="filter-row" id="filters"><label>Тип<select id="kind"><option value="">Все записи</option><option value="film">Фильмы</option><option value="animation">Мультфильмы</option><option value="reality">Реалити-шоу</option><option value="game">Игры</option><option value="stream">Стримы и IRL</option></select></label><label>Жанр<select id="genre"><option value="">Все жанры</option></select></label><label>Год фильма<select id="year"><option value="">Любой год</option></select></label><label>Кинопоиск<select id="minKP"><option value="">Любая оценка</option><option value="6">От 6</option><option value="7">От 7</option><option value="8">От 8</option><option value="9">От 9</option></select></label><label>Доступность<select id="status"><option value="available">Доступные</option><option value="">Все</option><option value="unavailable">Недоступные</option></select></label></div>
+<div class="results-toolbar"><div id="resultsLabel" role="status">Готовим записи…</div><label class="sort-label">Порядок<select id="sort" aria-label="Сортировка"><option value="relevance">По совпадению</option><option value="new">Сначала новые</option><option value="kp">По Кинопоиску</option><option value="score">По оценке Зубарева</option><option value="title">По алфавиту</option></select></label></div>
+<div id="activeFilters" class="active-filters hidden"></div>
+<div class="info-note hidden" id="viewNote"></div>
+<div class="error-panel hidden" id="errorPanel" role="alert"><svg><use href="#i-alert"/></svg><h3>Каталог не загрузился</h3><p id="errorText">Проверь подключение и попробуй ещё раз.</p><button class="primary-button" id="retry">Попробовать снова</button></div>
+<div class="cards-grid" id="results" aria-busy="true"><div class="skeleton card-skeleton"></div><div class="skeleton card-skeleton"></div><div class="skeleton card-skeleton"></div></div>
+<div class="empty-panel hidden" id="empty"><svg><use href="#i-search"/></svg><h3 id="emptyTitle">Ничего не нашлось</h3><p id="emptyText">Попробуй другое название или убери часть фильтров.</p><button class="primary-button" id="reset">Сбросить поиск и фильтры</button></div>
+<button class="load-more hidden" id="loadMore">Показать ещё <span>↓</span></button>
+</section>
+<section class="changes-section hidden" id="changesSection"><div class="section-heading"><div><div class="eyebrow">ЧТО ПРОИСХОДИТ С АРХИВОМ</div><h2>История изменений</h2></div></div><p class="changes-caption">Показываем, что добавилось и стало недоступно. Время ниже означает момент обнаружения изменения.</p><div id="changesList" class="changes-list"></div><button id="moreChanges" class="load-more hidden">Ещё изменения ↓</button></section>
+</main>
+<footer><span>Суперпоиск <span class="footer-dot">·</span> Хорошего просмотра.</span><a href="https://t.me/zubarefffwatch" target="_blank" rel="noopener noreferrer">@zubarefffwatch ↗</a></footer>
 </div>
-
-<!-- ВКЛАДКИ -->
-<div class="tabs">
-  <button class="tab active" data-tab="search">🔍 Поиск</button>
-  <button class="tab" data-tab="genres">🎭 Жанры</button>
-  <button class="tab" data-tab="top">⭐ Топ Зубарева</button>
-  <button class="tab" data-tab="new">🆕 Новое</button>
 </div>
-
-<!-- ═══ ПОИСК ═══ -->
-<div class="screen active" id="tab-search">
-  <div class="archive-note"><strong>Архив переехал в новый канал.</strong> Выбирай фильм здесь, а карточка откроет нужную запись в <b>@zubarefffwatch</b>.</div>
-  <div class="searchbar">
-    <div class="wrap">
-      <input id="q" type="search" placeholder="Название, жанр или год…" autocomplete="off">
-      <button class="clearbtn" id="clear">✕</button>
-    </div>
-    <button class="gobtn" id="go">Найти</button>
-  </div>
-  <!-- Фильтры поиска -->
-  <div id="searchFilters" class="hidden" style="display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap;align-items:center">
-    <span style="font-size:12px;color:var(--hint)">Сортировка:</span>
-    <button id="sortRel" style="border:1px solid var(--accent);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--accent);cursor:pointer;font-weight:600">По совпадению</button>
-    <button id="sortKP" style="border:1px solid var(--hint);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--hint);cursor:pointer">По рейтингу КП</button>
-  </div>
-  <div class="status" id="searchStatus"><span class="pill" id="searchText">Загружаю…</span></div>
-  <div class="list" id="searchResults"></div>
-  <div class="empty hidden" id="searchEmpty"></div>
-  <div class="footer">
-    Понимает опечатки, часть слова, транслит и ё/е.<br>
-    <a id="helpLink" href="#">⚙️ Видео не работает — сюда</a>
-  </div>
-</div>
-
-<!-- ═══ ЖАНРЫ ═══ -->
-<div class="screen" id="tab-genres">
-  <!-- главный список жанров -->
-  <div id="genreHome">
-    <div class="sec-title">Жанры и подборки</div>
-    <div class="genres" id="genreGrid"></div>
-  </div>
-  <!-- экран конкретного жанра -->
-  <div id="genreDetail" class="hidden">
-    <div class="back-row">
-      <button class="back-btn" id="genreBack">← Назад</button>
-      <span class="gscreen-title" id="genreTitle"></span>
-      <span class="gscreen-count" id="genreCount"></span>
-    </div>
-    <div class="list" id="genreMovies"></div>
-  </div>
-</div>
-
-<!-- ═══ ТОП ЗУБАРЕВА ═══ -->
-<div class="screen" id="tab-top">
-  <div class="sec-title" id="topTitle">⭐ Лучшее по версии Зубарева</div>
-  <div style="display:flex;gap:6px;padding:0 12px 10px;flex-wrap:wrap" id="topFilters">
-    <button class="tab active" style="padding:5px 12px;border-radius:20px;border:1px solid var(--accent);font-size:13px" data-score="all">Все</button>
-    <button class="tab" style="padding:5px 12px;border-radius:20px;border:1px solid var(--hint);font-size:13px" data-score="10">🏆 10/10</button>
-    <button class="tab" style="padding:5px 12px;border-radius:20px;border:1px solid var(--hint);font-size:13px" data-score="9">⭐ 9/10</button>
-    <button class="tab" style="padding:5px 12px;border-radius:20px;border:1px solid var(--hint);font-size:13px" data-score="8">👍 8/10</button>
-    <button class="tab" style="padding:5px 12px;border-radius:20px;border:1px solid var(--hint);font-size:13px" data-score="collab">👥 С гостями</button>
-  </div>
-  <div class="list" id="topList"></div>
-</div>
-
-<!-- ═══ НОВОЕ ═══ -->
-<div class="screen" id="tab-new">
-  <div class="sec-title">Последние записи канала</div>
-  <div class="status" id="newStatus"><span class="pill">Загружаю…</span></div>
-  <div class="list" id="newList"></div>
-</div>
-
-<script>
-(function(){
-const CONFIG = {
-  CHANNEL: 'zubarefffwatch',
-  HELP_URL: 'https://telegra.ph/Esli-u-vas-lagayutzavisayutne-rabotayut-07-02',
-  BLOCKED: {}
-};
-
-const tg = window.Telegram?.WebApp;
-if(tg){tg.ready();tg.expand();}
-
-function openLink(url){
-  if(!url) return;
-  if(tg && url.startsWith('https://t.me/') && tg.openTelegramLink) tg.openTelegramLink(url);
-  else if(tg && tg.openLink) tg.openLink(url);
-  else window.open(url,'_blank');
-}
-
-// ════ ДАННЫЕ ════
-let POSTS=[], GENRES=[], RATINGS=[], INDEX=[];
-const PAGE=5, PAGE_MORE=15;
-let searchResults=[], searchShown=0, newShown=0, curTopFilter='all';
-
-// ════ ПОИСКОВЫЙ ДВИЖОК v2 ════
-  // Поиск по режиссёру/актёрам/жанру, английские запросы,
-  // фильтр по году/рейтингу КП, сортировка по КП
-  const RU2EN={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch","ъ":"","ы":"y","ь":"","э":"e","ю":"yu","я":"ya"};
-  const EN2RU={"batman":"бэтмен","spider":"паук","man":"человек","iron":"железный","captain":"капитан","avengers":"мстители","matrix":"матрица","terminator":"терминатор","gladiator":"гладиатор","alien":"чужой","predator":"хищник","joker":"джокер","hulk":"халк","thor":"тор","blade":"блэйд","rocky":"рокки"};
-  const GENRE_ALIASES={"ужасы":["horror","ужас","хоррор"],"комедия":["comedy","комед","смешн"],"боевик":["action","экшн","боев"],"триллер":["thriller"],"фантастика":["sci-fi","фантаст","нф"],"фэнтези":["fantasy","фэнтез"],"драма":["drama","драм"],"мультфильм":["cartoon","мульт","аниме","animation"],"криминал":["crime","криминал"],"приключения":["adventure","приключ"],"мистика":["mystery","мистик"]};
-
-  const normalize=s=>(s||'').toLowerCase().replace(/ё/g,'е').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
-  const translit=s=>{let o='';for(const c of s)o+=RU2EN[c]!==undefined?RU2EN[c]:c;return o;};
-  const untranslit=s=>s.split(' ').map(w=>EN2RU[w]||w).join(' ');
-  function grams(s){const set=new Set(),p=' '+s+' ';for(let i=0;i<p.length-1;i++)set.add(p.slice(i,i+2));for(let i=0;i<p.length-2;i++)set.add(p.slice(i,i+3));return set;}
-  const tgc=new Map();
-  function tokGrams(t){let g=tgc.get(t);if(g)return g;g=new Set();const p=' '+t+' ';for(let i=0;i<p.length-1;i++)g.add(p.slice(i,i+2));tgc.set(t,g);return g;}
-  function dice(a,b){const ga=tokGrams(a),gb=tokGrams(b);let h=0;for(const x of ga)if(gb.has(x))h++;return 2*h/(ga.size+gb.size);}
-  const scc=new Map();
-  function skel(t){let s=scc.get(t);if(s!==undefined)return s;s=t.replace(/[аеиоуыэюяйьъaeiouy]/g,'').replace(/(.)+/g,'$1');scc.set(t,s);return s;}
-
-  function parseQuery(q){
-    const r={text:q,year:null,yearRange:null,minKP:null,genre:null,tokens:[]};
-    let rem=q;
-    const ym=rem.match(/\b(19|20)(\d{2})\b/);
-    if(ym){r.year=parseInt(ym[0]);rem=rem.replace(ym[0],'').trim();}
-    const dm=rem.match(/(\d{2})[- ]?е/);
-    if(dm){const d=parseInt(dm[1]);r.yearRange=d<30?[2000+d,2000+d+9]:[1900+d,1900+d+9];rem=rem.replace(dm[0],'').trim();}
-    const km=rem.match(/(\d+(?:[.,]\d+)?)\s*\+/);
-    if(km&&parseFloat(km[1])>=5&&parseFloat(km[1])<=10){r.minKP=parseFloat(km[1].replace(',','.'));rem=rem.replace(km[0],'').trim();}
-    for(const[genre,aliases]of Object.entries(GENRE_ALIASES)){
-      if(rem.includes(genre)||aliases.some(a=>rem.includes(a))){r.genre=genre;break;}
-    }
-    r.tokens=rem.split(' ').filter(t=>t.length>=2);
-    return r;
-  }
-
-  function buildIndex(){
-    INDEX=POSTS.map(p=>{
-      const meta=p.meta||{};
-      const normTitle=normalize(meta.title||'');
-      const normMeta=normalize([meta.director||'',meta.cast||'',meta.genre||''].join(' '));
-      const fullText=normalize(p.text);
-      const fullNorm=normTitle+' '+normMeta+' '+fullText+' '+translit(normTitle)+' '+untranslit(normTitle);
-      return{post:p,meta,normTitle,normMeta,norm:fullNorm,tokens:fullNorm.split(' ').filter(Boolean),grams:grams(fullNorm)};
-    });
-  }
-
-  function scorePost(entry,parsed,qGrams){
-    const{text:qN,tokens:qT,year,yearRange,minKP,genre}=parsed;
-    let s=0;
-    const meta=entry.meta||{};
-    if(year&&meta.year&&Math.abs(meta.year-year)>1) return -1;
-    if(yearRange&&meta.year&&(meta.year<yearRange[0]||meta.year>yearRange[1])) return -1;
-    if(minKP&&meta.kp&&meta.kp<minKP) return -1;
-    if(genre){const aliases=GENRE_ALIASES[genre]||[genre];if(!aliases.some(a=>entry.normMeta.includes(a))&&!entry.normMeta.includes(genre))s-=20;}
-    if(qN.length>=2){
-      if(entry.normTitle.includes(qN))s+=120;
-      else if(entry.normMeta.includes(qN))s+=60;
-      else if(entry.norm.includes(qN))s+=40;
-    }
-    for(const qt of qT){
-      if(qt.length<2)continue;
-      let best=0;
-      for(const t of entry.normTitle.split(' ')){
-        if(t===qt)best=Math.max(best,50);
-        else if(t.startsWith(qt))best=Math.max(best,35);
-        else if(qt.length>=3&&t.includes(qt))best=Math.max(best,20);
-        else if(qt.length>=4&&Math.abs(t.length-qt.length)<=3){const d=dice(qt,t);if(d>=0.6)best=Math.max(best,d*40);else{const sq=skel(qt);if(sq.length>=3&&sq===skel(t))best=Math.max(best,25);}}
-      }
-      for(const t of entry.normMeta.split(' ')){
-        if(t===qt)best=Math.max(best,40);
-        else if(t.startsWith(qt))best=Math.max(best,25);
-        else if(qt.length>=3&&t.includes(qt))best=Math.max(best,15);
-      }
-      for(const t of entry.tokens){if(t===qt)best=Math.max(best,15);else if(t.startsWith(qt))best=Math.max(best,10);}
-      s+=best;
-    }
-    if(qGrams.size){let h=0;for(const g of qGrams)if(entry.grams.has(g))h++;s+=(h/qGrams.size)*25;}
-    if(meta.kp)s+=(meta.kp-7)*0.5;
-    if(entry.tokens.length>150)s*=0.5;
-    return s;
-  }
-
-  let sortMode='relevance';
-  function search(query){
-    const qn=normalize(query);
-    if(!qn)return[];
-    const parsed=parseQuery(qn);
-    const qtr=translit(qn),qunt=untranslit(qn);
-    const allGrams=grams([qn,qtr,qunt].join(' '));
-    const variants=[parsed,{...parsed,text:qtr,tokens:qtr.split(' ').filter(t=>t.length>=2)},{...parsed,text:qunt,tokens:qunt.split(' ').filter(t=>t.length>=2)}];
-    const out=[];
-    for(const e of INDEX){
-      let best=0,blocked=false;
-      for(const v of variants){const s=scorePost(e,v,allGrams);if(s===-1){blocked=true;break;}if(s>best)best=s;}
-      if(!blocked&&best>=18)out.push({entry:e,s:best});
-    }
-    if(sortMode==='kp')return out.sort((a,b)=>(b.entry.meta.kp||0)-(a.entry.meta.kp||0));
-    return out.sort((a,b)=>b.s-a.s||b.entry.post.id-a.entry.post.id);
-  }
-
-  // ════ УТИЛИТЫ РЕНДЕРА ════
-const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function highlight(text,q){
-  let safe=esc(text);
-  for(const w of normalize(q||'').split(' ').filter(w=>w.length>=2)){
-    try{safe=safe.replace(new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');}catch(e){}
-  }
-  return safe;
-}
-function fmtDate(iso){
-  if(!iso) return '';
-  const d=new Date(iso);
-  return isNaN(d)?iso:d.toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'});
-}
-function excerpt(text,q,max=300){
-  if(text.length<=max) return text;
-  const idx=normalize(text).indexOf(normalize(q||'').split(' ')[0]||'');
-  if(idx<=60) return text.slice(0,max)+'…';
-  return '…'+text.slice(Math.max(0,idx-60),idx-60+max)+'…';
-}
-
-// ════ КАРТОЧКА ПОСТА ════
-function makePostCard(p,query,showScore,score){
-  const isB=CONFIG.BLOCKED[p.id];
-  const isLow=/#low\b/i.test(p.text);
-  const title=p.meta?.title||'';
-  const div=document.createElement('div');
-  div.className='post';
-  let meta=`<span>${fmtDate(p.date)}</span>`;
-  if(isB) meta+=`<span class="badge blocked">🚫 ${isB.date}</span>`;
-  if(isLow) meta+=`<span class="badge low">low</span>`;
-  if(showScore&&score!=null) meta+=`<span class="score-tag">${Math.min(100,Math.round(score))}%</span>`;
-  let action=isB
-    ?`<span class="to-reserve">📦 Открыть в резерве →</span>`
-    :`<span>Открыть запись →</span>`;
-  div.innerHTML=`<div class="meta">${meta}</div>`+
-    (title?`<div class="title">${esc(title)}</div>`:'')+
-    `<div class="body">${highlight(excerpt(p.text,query),query)}</div>`+
-    `<div class="actions">${action}</div>`;
-  div.addEventListener('click',()=>{
-    openLink(isB ? isB.url : `https://t.me/${CONFIG.CHANNEL}/${p.id}`);
-  });
-  return div;
-}
-
-// ════ ВКЛАДКА: ПОИСК ════
-const $sResults=document.getElementById('searchResults');
-const $sStatus=document.getElementById('searchStatus');
-const $sText=document.getElementById('searchText');
-const $sEmpty=document.getElementById('searchEmpty');
-const $q=document.getElementById('q');
-const $clear=document.getElementById('clear');
-
-function renderSearchChunk(){
-  const chunk=searchResults.slice(searchShown,searchShown+(searchShown===0?PAGE:PAGE_MORE));
-  const frag=document.createDocumentFragment();
-  for(const r of chunk) frag.appendChild(makePostCard(r.entry.post,$q.value.trim(),true,r.s));
-  $sResults.appendChild(frag);
-  searchShown+=chunk.length;
-}
-
-function runSearch(){
-  const q=$q.value.trim();
-  $clear.style.display=q?'block':'none';
-  $sResults.innerHTML='';$sEmpty.classList.add('hidden');searchShown=0;
-  document.getElementById('searchFilters').classList.add('hidden');
-  if(!q){
-    $sStatus.classList.remove('hidden');
-    $sText.textContent=`В архиве: ${POSTS.length} записей. Введите запрос.`;
-    return;
-  }
-  searchResults=search(q);
-  if(!searchResults.length){
-    $sStatus.classList.add('hidden');
-    $sEmpty.innerHTML=`По запросу «${esc(q)}» ничего не найдено.<br>Попробуйте одно слово из названия.<br>Фильм мог попасть под блокировку.`+
-      `<br><span class="cta" id="emptyRes">↗ Открыть новый канал</span>`;
-    $sEmpty.classList.remove('hidden');
-    document.getElementById('emptyRes')?.addEventListener('click',()=>openLink('https://t.me/'+CONFIG.CHANNEL));
-    return;
-  }
-  $sStatus.classList.remove('hidden');
-  $sText.textContent=`Найдено: ${searchResults.length}`;
-  document.getElementById('searchFilters').classList.remove('hidden');
-  renderSearchChunk();
-}
-
-document.getElementById('go').addEventListener('click',runSearch);
-$q.addEventListener('keydown',e=>{if(e.key==='Enter'){$q.blur();runSearch();}});
-$q.addEventListener('input',()=>{$clear.style.display=$q.value?'block':'none';if(!$q.value.trim())runSearch();});
-$clear.addEventListener('click',()=>{$q.value='';runSearch();});
-
-// Сортировка
-document.getElementById('sortRel').addEventListener('click',function(){
-  sortMode='relevance';
-  this.style.cssText='border:1px solid var(--accent);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--accent);cursor:pointer;font-weight:600';
-  const kpBtn=document.getElementById('sortKP');
-  kpBtn.style.cssText='border:1px solid var(--hint);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--hint);cursor:pointer';
-  if($q.value.trim())runSearch();
-});
-document.getElementById('sortKP').addEventListener('click',function(){
-  sortMode='kp';
-  this.style.cssText='border:1px solid var(--accent);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--accent);cursor:pointer;font-weight:600';
-  const relBtn=document.getElementById('sortRel');
-  relBtn.style.cssText='border:1px solid var(--hint);border-radius:16px;padding:4px 11px;font-size:12.5px;background:transparent;color:var(--hint);cursor:pointer';
-  if($q.value.trim())runSearch();
-});
-
-// ════ ВКЛАДКА: ЖАНРЫ ════
-const $genreGrid=document.getElementById('genreGrid');
-const $genreHome=document.getElementById('genreHome');
-const $genreDetail=document.getElementById('genreDetail');
-const $genreMovies=document.getElementById('genreMovies');
-
-function buildGenreGrid(){
-  $genreGrid.innerHTML='';
-  for(const g of GENRES){
-    const b=document.createElement('button');
-    b.className='genre';
-    b.innerHTML=`<span class="em">${g.em}</span><span>${g.name}</span>`+
-      (g.items.length?`<span class="cnt">${g.items.length}</span>`:'');
-    b.addEventListener('click',()=>showGenre(g));
-    $genreGrid.appendChild(b);
-  }
-}
-
-function showGenre(g){
-  if(!g.items.length&&g.cat){openLink(`https://t.me/${CONFIG.CHANNEL}/${g.cat}`);return;}
-  $genreHome.classList.add('hidden');
-  $genreDetail.classList.remove('hidden');
-  document.getElementById('genreTitle').textContent=g.em+' '+g.name;
-  document.getElementById('genreCount').textContent=g.items.length+' шт';
-  $genreMovies.innerHTML='';
-  const frag=document.createDocumentFragment();
-  for(const item of g.items){
-    const isB=item.b;
-    const div=document.createElement('div');
-    div.className='movie'+(isB?' blocked':'');
-    let badge=isB?`<span class="badge blocked" style="margin-left:6px">🚫</span>`:
-      (!item.id?`<span class="badge low" style="margin-left:6px">поиск</span>`:'');
-    div.innerHTML=`<div class="mtitle">${esc(item.t)}${badge}</div>`+
-      `<span class="marrow">${isB?'📦':'→'}</span>`;
-    div.addEventListener('click',()=>{
-      if(isB){
-        // ищем прямую ссылку в BLOCKED по title
-        const bEntry=Object.values(CONFIG.BLOCKED).find(b=>item.t.includes(b.title)||b.title.includes(item.t.replace(/\s*\(\d{4}\)/,'')));
-        openLink(bEntry?bEntry.url:'https://t.me/'+CONFIG.CHANNEL);
-      } else if(item.id){
-        openLink(`https://t.me/${CONFIG.CHANNEL}/${item.id}`);
-      } else {
-        $q.value=item.t.replace(/\s*\(\d{4}\)\s*$/,'');
-        switchTab('search');runSearch();window.scrollTo(0,0);
-      }
-    });
-    frag.appendChild(div);
-  }
-  $genreMovies.appendChild(frag);
-  if(tg?.BackButton){tg.BackButton.show();}
-}
-
-function backToGenres(){
-  $genreDetail.classList.add('hidden');
-  $genreHome.classList.remove('hidden');
-  if(tg?.BackButton) tg.BackButton.hide();
-}
-document.getElementById('genreBack').addEventListener('click',backToGenres);
-if(tg?.BackButton) tg.BackButton.onClick(backToGenres);
-
-// ════ ВКЛАДКА: ТОП ЗУБАРЕВА ════
-const $topList=document.getElementById('topList');
-
-function buildTop(filter){
-  curTopFilter=filter;
-  $topList.innerHTML='';
-  // Для collab берём все посты с гостями из INDEX
-  if(filter==='collab'){
-    const collabPosts=INDEX.filter(e=>e.meta&&e.meta.guest)
-      .sort((a,b)=>b.post.id-a.post.id);
-    $topList.innerHTML='';
-    document.getElementById('topTitle').textContent=`👥 С гостями (${collabPosts.length} фильмов)`;
-    const frag=document.createDocumentFragment();
-    for(const e of collabPosts){
-      const p=e.post,meta=e.meta||{};
-      const isB=CONFIG.BLOCKED[p.id];
-      const div=document.createElement('div');
-      div.className='rating-card';
-      div.innerHTML=`<div class="rtop">`+
-        `<div class="score-badge score-8" style="font-size:22px;width:46px;height:46px">👥</div>`+
-        `<div><div class="rtitle">${esc(meta.title||'')}</div>`+
-        `<div class="rquote">вместе с ${esc(meta.guest||'')}</div></div></div>`+
-        `<div class="rmeta">${p.date?p.date.slice(0,10):''}${meta.kp?' · КП '+meta.kp:''}${isB?' · <span style="color:var(--red)">🚫 в резерве</span>':''}</div>`;
-      div.addEventListener('click',()=>{
-        if(isB)openLink(isB.url);
-        else openLink(`https://t.me/${CONFIG.CHANNEL}/${p.id}`);
-      });
-      frag.appendChild(div);
-    }
-    $topList.appendChild(frag);
-    return;
-  }
-  let data=RATINGS.filter(r=>r.score!=null&&r.score>=8);
-  if(filter==='10') data=data.filter(r=>r.score>=10);
-  else if(filter==='9') data=data.filter(r=>r.score>=9&&r.score<10);
-  else if(filter==='8') data=data.filter(r=>r.score>=8&&r.score<9);
-  data=data.sort((a,b)=>b.score-a.score||b.id-a.id);
-  const frag=document.createDocumentFragment();
-  for(const r of data){
-    const sc=r.score>=10?'score-10':r.score>=9?'score-9':'score-8';
-    const isB=CONFIG.BLOCKED[r.id];
-    const div=document.createElement('div');
-    div.className='rating-card';
-    div.innerHTML=`<div class="rtop">`+
-      `<div class="score-badge ${sc}">${r.score}</div>`+
-      `<div><div class="rtitle">${esc(r.title)}</div>`+
-      (r.raw?`<div class="rquote">«${esc(r.raw.slice(0,90))}»</div>`:'')+'</div></div>'+
-      `<div class="rmeta">${r.date}${isB?' · <span style="color:var(--red)">🚫 в резерве</span>':''}</div>`;
-    div.addEventListener('click',()=>{
-      if(isB) openLink(isB.url);
-      else openLink(`https://t.me/${CONFIG.CHANNEL}/${r.id}`);
-    });
-    frag.appendChild(div);
-  }
-  $topList.appendChild(frag);
-  document.getElementById('topTitle').textContent=`⭐ Лучшее по версии Зубарева (${data.length} фильмов)`;
-}
-
-document.getElementById('topFilters').addEventListener('click',e=>{
-  const btn=e.target.closest('[data-score]');
-  if(!btn) return;
-  document.querySelectorAll('#topFilters [data-score]').forEach(b=>{
-    b.style.borderColor='var(--hint)';b.classList.remove('active');});
-  btn.style.borderColor='var(--accent)';btn.classList.add('active');
-  buildTop(btn.dataset.score);
-});
-
-// ════ ВКЛАДКА: НОВОЕ ════
-const $newList=document.getElementById('newList');
-let newPosts=[];
-
-function buildNew(){
-  newPosts=INDEX.slice().sort((a,b)=>b.post.id-a.post.id);
-  document.getElementById('newStatus').innerHTML='<span class="pill">Последние '+Math.min(newPosts.length,50)+' записей</span>';
-  renderNewChunk();
-}
-function renderNewChunk(){
-  const chunk=newPosts.slice(newShown,newShown+(newShown===0?PAGE:PAGE_MORE));
-  const frag=document.createDocumentFragment();
-  for(const e of chunk) frag.appendChild(makePostCard(e.post,'',false,null));
-  $newList.appendChild(frag);
-  newShown+=chunk.length;
-}
-
-// ════ ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ════
-function switchTab(name){
-  document.querySelectorAll('.tab[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
-  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='tab-'+name));
-  // сбрасываем жанр-экран при переключении
-  if(name!=='genres'){$genreDetail.classList.add('hidden');$genreHome.classList.remove('hidden');}
-  window.scrollTo(0,0);
-}
-document.querySelectorAll('.tab[data-tab]').forEach(t=>{
-  t.addEventListener('click',()=>switchTab(t.dataset.tab));
-});
-
-// ════ ИНФРАСТРУКТУРА ════
-document.getElementById('reserveTop').addEventListener('click',()=>openLink('https://t.me/'+CONFIG.CHANNEL));
-document.getElementById('helpLink').addEventListener('click',e=>{e.preventDefault();openLink(CONFIG.HELP_URL);});
-
-// подгрузка при скролле
-window.addEventListener('scroll',()=>{
-  if(window.innerHeight+window.scrollY<document.body.offsetHeight-250) return;
-  const active=document.querySelector('.screen.active')?.id;
-  if(active==='tab-search'&&searchShown<searchResults.length) renderSearchChunk();
-  if(active==='tab-new'&&newShown<newPosts.length) renderNewChunk();
-});
-
-// ════ ЗАГРУЗКА ДАННЫХ ════
-Promise.all([
-  fetch('posts.json',{cache:'no-store'}).then(r=>r.json()),
-  fetch('genres.json',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
-  fetch('ratings.json',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
-]).then(([posts,genres,ratings])=>{
-  POSTS=posts.filter(p=>!p.text.includes('lvlx.click'));
-  GENRES=genres;
-  RATINGS=ratings;
-}).catch(()=>{
-  POSTS=[{id:1,date:'',text:'Не удалось загрузить posts.json'}];
-}).finally(()=>{
-  buildIndex();
-  buildGenreGrid();
-  buildTop('all');
-  buildNew();
-  $sText.textContent=`В архиве: ${POSTS.length} записей. Введите запрос.`;
-});
-
-})();
-</script>
+<dialog id="details" aria-labelledby="detailTitle"><div class="detail-head"><span class="eyebrow">КАРТОЧКА ЗАПИСИ</span><button id="closeDetails" class="icon-button" aria-label="Закрыть карточку"><svg><use href="#i-close"/></svg></button></div><div id="detailContent"></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<noscript><div class="noscript">Для поиска нужен JavaScript. <a href="https://t.me/zubarefffwatch">Открыть канал</a></div></noscript>
 </body>
 </html>
