@@ -1,4 +1,318 @@
 {
-  "1100": {"related_to": 1094, "version": "Оригинальная запись"},
-  "867": {"related_to": 864, "version": "Одним файлом"}
+  "1100": {
+    "related_to": 1094,
+    "version": "Оригинальная запись"
+  },
+  "867": {
+    "related_to": 864,
+    "version": "Одним файлом"
+  },
+  "552": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "550": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "546": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "496": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "483": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "481": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "470": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "394": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "385": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "383": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "381": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "375": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "364": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "362": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "360": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "247": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "245": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "244": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "226": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "224": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "222": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "82": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "79": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "77": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "71": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "69": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "67": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "29": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "412": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "414": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "416": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "418": {
+    "meta": {
+      "kind": "animation"
+    },
+    "categories_add": [
+      "Мультфильмы"
+    ]
+  },
+  "723": {
+    "meta": {
+      "kind": "film"
+    },
+    "categories_remove": [
+      "Мультфильмы"
+    ]
+  },
+  "1713": {
+    "meta": {
+      "kind": "film"
+    },
+    "categories_remove": [
+      "Мультфильмы"
+    ]
+  },
+  "389": {
+    "categories_add": [
+      "Ужасы"
+    ]
+  },
+  "1708": {
+    "meta": {
+      "score": 9.5
+    },
+    "note": "В подписи сначала 10/10, затем окончательная оценка 9.5/10."
+  },
+  "1000": {
+    "reserve_url": "https://t.me/rezervzub/53",
+    "reserve_verified_at": "2026-11-16",
+    "note": "Публикация с видео проверена через Telegram Web; полное воспроизведение не проверялось."
+  },
+  "1634": {
+    "reserve_url": "https://t.me/rezervzub/56",
+    "reserve_verified_at": "2026-11-16",
+    "note": "Публикация с видео проверена через Telegram Web; полное воспроизведение не проверялось."
+  },
+  "664": {
+    "reserve_url": "https://t.me/rezervzub/22",
+    "reserve_verified_at": "2026-11-16",
+    "note": "Публикация с видео проверена через Telegram Web; полное воспроизведение не проверялось."
+  },
+  "873": {
+    "reserve_url": "https://t.me/rezervzub/3",
+    "reserve_verified_at": "2026-11-16",
+    "note": "Публикация с видео проверена через Telegram Web; полное воспроизведение не проверялось."
+  },
+  "139": {
+    "reserve_url": "https://t.me/rezervzub/36",
+    "reserve_verified_at": "2026-11-16",
+    "note": "Публикация с видео проверена через Telegram Web; полное воспроизведение не проверялось."
+  }
 }

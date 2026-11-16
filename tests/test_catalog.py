@@ -101,7 +101,7 @@ class CatalogueTests(unittest.TestCase):
         items=data["items"]
         self.assertEqual(len({p["id"] for p in items}),len(items))
         self.assertEqual(len(items),data["stats"]["records"])
-        self.assertEqual(sum(p["status"]=="available" for p in items),data["stats"]["available"])
+        self.assertEqual(sum(b.is_available(p) for p in items),data["stats"]["available"])
         self.assertFalse(data["review"])
         for post in items:
             self.assertTrue(post["meta"]["title"])
@@ -109,6 +109,56 @@ class CatalogueTests(unittest.TestCase):
             if post["status"] in {"blocked","deleted"}:self.assertIsNone(post["url"])
             self.assertNotIn("Режиссер:",post["meta"]["genre"])
         self.assertEqual(json.loads((ROOT/"posts.json").read_text(encoding="utf-8")),items)
+
+    def test_browser_additions_do_not_override_a_newer_full_scan(self):
+        extra=dict(verified_at="2026-11-16T00:00:00+00:00",records=[dict(
+            id=10,text='Фильм "Новый (2004)"',date="2026-11-04T00:00:00+00:00",
+            parts=[dict(id=10,duration=200),dict(id=11,duration=100)])])
+        source=snapshot([message()])
+        first=b.build(source,[],[],additions=extra)
+        post=next(p for p in first['items'] if p['id']==10)
+        self.assertEqual(post['parts'],2)
+        self.assertFalse(post['bytes_known'])
+        self.assertEqual(first['checked_at'],source['fetched_at'])
+        self.assertEqual(first['updated_at'],extra['verified_at'])
+        second=b.build(source,[],[],previous=first,additions=extra)
+        self.assertEqual(first['items'],second['items'])
+        self.assertEqual(first['changes'],second['changes'])
+        newer={**source,'fetched_at':'2026-11-17T00:00:00+00:00'}
+        latest=b.build(newer,[],[],previous=second,additions=extra)
+        self.assertEqual(next(p for p in latest['items'] if p['id']==10)['status'],'deleted')
+
+    def test_overrides_survive_rebuild_and_reserve_preserves_main_status(self):
+        old=[dict(id=1,text='Фильм "Шрэк (2001)"',meta=dict(title="Шрэк (2001)"))]
+        source=snapshot([message(text='copyright infringement',video=False)])
+        overrides={'1':dict(meta={'kind':'animation'},categories_add=['Мультфильмы'],reserve_url='https://t.me/rezervzub/53')}
+        first=b.build(source,old,[],overrides=overrides)
+        second=b.build(source,old,[],previous=first,overrides=overrides)
+        self.assertEqual(first['items'],second['items'])
+        p=second['items'][0]
+        self.assertEqual(p['status'],'blocked')
+        self.assertIsNone(p['url'])
+        self.assertEqual(p['meta']['kind'],'animation')
+        self.assertEqual(second['stats']['available'],1)
+        self.assertEqual(second['stats']['unavailable'],0)
+        overrides['1']['reserve_url']='https://example.com/53'
+        with self.assertRaises(ValueError):b.build(source,old,[],overrides=overrides)
+
+    def test_requested_catalogue_fixes(self):
+        data=json.loads((ROOT/'catalog.json').read_text(encoding='utf-8'))
+        by={p['id']:p for p in data['items']}
+        for pid in [1708,1713,1717,1723,1728,1733,1737,1742]:
+            self.assertEqual(by[pid]['status'],'available')
+            self.assertGreater(by[pid]['parts'],0)
+        for pid in [412,414,416,418,360,362,364,77,79,82,394,244,245,247]:
+            self.assertEqual(by[pid]['meta']['kind'],'animation')
+            self.assertIn('Мультфильмы',by[pid]['categories'])
+        self.assertIn('Ужасы',by[389]['categories'])
+        for pid in [723,1713]:
+            self.assertEqual(by[pid]['meta']['kind'],'film')
+            self.assertNotIn('Мультфильмы',by[pid]['categories'])
+        self.assertEqual(by[1708]['meta']['score'],9.5)
+        self.assertIsNone(by[1728]['meta']['score'])
 
 
 if __name__ == "__main__":

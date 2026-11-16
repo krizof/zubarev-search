@@ -108,11 +108,15 @@ def parse_meta(text, fallback=None):
 
 
 def fingerprint(post):
-    keys = ("text", "meta", "status", "message_ids", "bytes", "categories")
+    keys = ("text", "meta", "status", "message_ids", "bytes", "categories", "reserve_url")
     return hashlib.sha256(json.dumps({k: post.get(k) for k in keys}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
 
-def build(snapshot, legacy_posts, legacy_genres, previous=None, overrides=None):
+def is_available(post):
+    return post["status"] == "available" or bool(post.get("reserve_url"))
+
+
+def build(snapshot, legacy_posts, legacy_genres, previous=None, overrides=None, additions=None):
     if snapshot.get("channel") != CHANNEL or snapshot.get("channel_id") != 3785873801:
         raise ValueError("Не тот канал. Обновление остановлено.")
     messages = snapshot.get("messages", [])
@@ -122,6 +126,24 @@ def build(snapshot, legacy_posts, legacy_genres, previous=None, overrides=None):
     # Protect against a partial export being mistaken for mass deletions.
     if previous and len(messages) < previous["stats"]["messages"] * .8:
         raise ValueError("Исчезло больше 20% истории. Нужна ручная проверка, каталог не изменён.")
+    # Browser-verified recent albums supplement an older full snapshot, never a newer one.
+    # Do not describe this targeted read as a new full-history check.
+    full_message_count = len(messages)
+    messages = list(messages)
+    additions = additions or {}
+    if additions and snapshot["fetched_at"] < additions["verified_at"]:
+        cutoff = max(m["id"] for m in messages)
+        known = {m["id"] for m in messages}
+        for record in additions.get("records", []):
+            if record["id"] <= cutoff:
+                continue
+            for part in record["parts"]:
+                if part["id"] in known:
+                    raise ValueError("Повтор части в дополнении каталога")
+                known.add(part["id"])
+                messages.append(dict(id=part["id"], text=record["text"] if part["id"] == record["id"] else "",
+                                     video=True, album=f"web-{record['id']}", bytes=0, bytes_known=False,
+                                     duration=part["duration"], date=record["date"], edited_at=None))
     old_by = {p["id"]: p for p in old_items}
     legacy = {p["id"]: p for p in legacy_posts if p.get("meta", {}).get("title")}
     legacy.update(old_by)
@@ -148,9 +170,9 @@ def build(snapshot, legacy_posts, legacy_genres, previous=None, overrides=None):
         blocked = "copyright infringement" in caption["text"].lower()
         text = old.get("text", "") if blocked else caption["text"]
         override = (overrides or {}).get(str(pid))
-        related = legacy.get(override["related_to"], {}) if override else {}
-        meta = parse_meta(text, related.get("meta", {}) if override else old.get("meta", {}))
-        if override and meta:
+        related = legacy.get(override["related_to"], {}) if override and "related_to" in override else {}
+        meta = parse_meta(text, related.get("meta", {}) if related else old.get("meta", {}))
+        if related and meta:
             related_meta = parse_meta(related.get("text", ""), related.get("meta", {}))
             if related_meta:
                 meta = {**related_meta, "version": override["version"]}
@@ -194,7 +216,21 @@ def build(snapshot, legacy_posts, legacy_genres, previous=None, overrides=None):
         items.append({**old, "meta": meta, "status": "deleted", "url": None, "message_ids": [], "parts": 0,
                       "bytes": 0, "duration": 0, "reason": "Запись удалена из канала", "categories": old.get("categories", sorted(curated[pid]))})
     items.sort(key=lambda p: p["id"], reverse=True)
+    for post in items:
+        override = (overrides or {}).get(str(post["id"]), {})
+        post["meta"].update(override.get("meta", {}))
+        categories = set(post["categories"]) | set(override.get("categories_add", []))
+        categories -= set(override.get("categories_remove", []))
+        if post["meta"]["kind"] == "animation":
+            categories.add("Мультфильмы")
+        post["categories"] = sorted(categories)
+        reserve = override.get("reserve_url")
+        if reserve and not re.fullmatch(r"https://t\.me/rezervzub/[1-9]\d*(?:\?single)?", reserve):
+            raise ValueError("Неверная ссылка на резерв")
+        post["reserve_url"] = reserve
+        post["bytes_known"] = all(by_id.get(i, {}).get("bytes_known", True) for i in post["message_ids"])
     checked_at = snapshot["fetched_at"]
+    updated_at = max(checked_at, additions.get("verified_at", checked_at))
     baseline = old_by or {p["id"]: p for p in legacy_posts if p.get("meta", {}).get("title")}
     events = list(previous.get("changes", [])) if previous else []
     for post in items:
@@ -207,19 +243,22 @@ def build(snapshot, legacy_posts, legacy_genres, previous=None, overrides=None):
         elif old_by and fingerprint(prior) != fingerprint(post):
             event = "edited"
         if event:
-            events.insert(0, {"id": post["id"], "type": event, "detected_at": checked_at,
+            events.insert(0, {"id": post["id"], "type": event, "detected_at": updated_at,
                               "title": post["meta"]["title"], "reason": post["reason"]})
     events.sort(key=lambda e: (e["detected_at"], e["id"]), reverse=True)
     counts = Counter(p["status"] for p in items)
-    stats = {"records": len(items), "available": counts["available"], "unavailable": len(items) - counts["available"],
+    available = sum(is_available(p) for p in items)
+    stats = {"records": len(items), "available": available, "unavailable": len(items) - available,
+             "reserve": sum(bool(p.get("reserve_url")) for p in items),
              "films": sum(p["meta"]["kind"] in {"film", "animation"} for p in items),
              "unique_films": len({p["meta"]["title"] for p in items if p["meta"]["kind"] in {"film", "animation"}}),
              "streams": sum(p["meta"]["kind"] not in {"film", "animation"} for p in items),
-             "messages": len(messages), "video_parts": sum(p["parts"] for p in items),
+             "messages": full_message_count, "video_parts": sum(p["parts"] for p in items),
              "copyright_messages": sum("copyright infringement" in m["text"].lower() for m in messages),
              "bytes": sum(p["bytes"] for p in items), "duration": sum(p["duration"] for p in items),
              "statuses": dict(counts)}
     return {"schema": 1, "channel": CHANNEL, "channel_id": 3785873801, "checked_at": checked_at,
+            "updated_at": updated_at,
             "baseline_note": "Изменения относительно каталога от 2 октября 2026 года. Дата проверки не является датой удаления.",
             "stats": stats, "items": items, "changes": events[:1000], "review": review}
 
@@ -234,7 +273,7 @@ def main():
     if not genres_baseline.exists():
         genres_baseline.write_text(json.dumps(read(ROOT / "genres.json", []), ensure_ascii=False), encoding="utf-8")
     result = build(snapshot, read(baseline, []), read(genres_baseline, []), read(ROOT / "catalog.json", None),
-                   read(ROOT / "metadata-overrides.json", {}))
+                   read(ROOT / "metadata-overrides.json", {}), read(ROOT / "verified-updates.json", {}))
     destination = ROOT / "catalog.json"
     tmp = destination.with_suffix(".tmp")
     tmp.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
@@ -244,9 +283,9 @@ def main():
         "posts.json": result["items"],
         "ratings.json": [{"id": p["id"], "title": p["meta"]["title"], "score": p["meta"]["score"],
                           "raw": p["meta"]["oz"], "date": p["date"][:10]}
-                         for p in result["items"] if p["meta"]["score"] is not None and p["status"] == "available"],
+                         for p in result["items"] if p["meta"]["score"] is not None and is_available(p)],
         "genres.json": [{"name": name, "em": "", "cat": None,
-                         "items": [{"id": p["id"], "t": p["meta"]["title"], "b": int(p["status"] != "available")}
+                         "items": [{"id": p["id"], "t": p["meta"]["title"], "b": int(not is_available(p))}
                                    for p in result["items"] if name in p["categories"]]}
                         for name in sorted({c for p in result["items"] for c in p["categories"]})],
     }
